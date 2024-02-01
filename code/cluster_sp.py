@@ -117,11 +117,11 @@ save_path = os.path.join(upper_level_directory, filename)
 #       Cluster                                        #
 ########################################################
 #%% # ler arquivos props selecionados
-id_test=314
+id_test=1 # 314
 ids = [id_test]
 props_df_sel=read_props_df_sel(ids, save_path)
 #%%
-segments_slic_sel=read_props_df_sel(ids,save_path, obj_to_read='segments_slic_sel')
+#segments_slic_sel=read_props_df_sel(ids,save_path, obj_to_read='segments_slic_sel')
 #%%
 # 5. Fazer cluster da imagem
 # seleciona as bandas que Vão ser usadas na clusterizacao e converte para numpy 
@@ -131,10 +131,7 @@ bands_to_cluster = ['NBR','EVI','NDVI']
 #arraybands_sel = props_df_sel[['NBR','EVI','NDVI']].to_numpy()
 arraybands_sel = props_df_sel[id_test][bands_to_cluster].to_numpy()
 arraybands_list_sel = arraybands_sel.tolist()
-#%%
-import random
-from tqdm import tqdm
-random.seed(999) # para gerar sempre com a mesma seed
+
 
 #%%
 dic_cluster = {}
@@ -162,3 +159,12 @@ for n in tqdm(range(2, n_clusters+1)):
 matrix_sim={}
 #%%
 matrix_sim[id_test] = cria_SimilarityMatrix_freq(dic_cluster)
+obj_dic={}
+obj_dic = {
+    "props_df_sel_cluster": props_df_sel,
+    "dic_labels_cluster": dic_cluster,
+    "matrix_sim":matrix_sim
+}
+
+file_to_save = save_path + '_cluster_'+str(id_test)+'.pkl'
+save_to_pickle(obj_dic, file_to_save)
