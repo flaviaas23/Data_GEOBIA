@@ -1,0 +1,13 @@
+ 460  pip install skimage
+  461  pip install scikit-image
+  462  pip install imageio
+  463  pip install imageio[pyav]
+  464  pip install sklearn
+  465  pip install sklearn
+  466  pip install scikit-learn
+  467  pip install memory_profiler
+  468  pip install pyclustering
+  470  pip install matplotlib
+  471  pip install d3graph
+  482  pip install PIL
+  487  pip install openpyxl xlrd

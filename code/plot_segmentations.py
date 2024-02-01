@@ -88,6 +88,10 @@ more regularly shaped. [5]_
 """
 #%%
 import matplotlib.pyplot as plt
+from matplotlib import gridspec
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.ticker import MaxNLocator, FormatStrFormatter
+from matplotlib.colorbar import Colorbar
 import numpy as np
 
 from skimage.data import astronaut,lily, immunohistochemistry
@@ -575,7 +579,7 @@ def img_slic_segment_gen_df(bands_sel, image_band_dic, img_sel='', n_segms=600, 
     ''''
     receives the bands to generate image and image bands dictionary
     slic only accepts 3 bands
-    generate image with slected bands and returns df of segmented image
+    generate image with selected bands and returns df of segmented image
     '''
     # 1.
     #criando imagem RGB para segmentar com SLIC 
@@ -747,6 +751,7 @@ def plot_images(img_sel,props_df_sel, segments_slic_sel, params_test_dic, n_cols
     plt.show()
     #fig.show()
 
+
 #%%    
 #0.
 files_name=[file_nbr,file_evi, file_ndvi, file_red, file_green, file_blue]
@@ -806,14 +811,14 @@ for id in tqdm(ids):
     compact = params_test_dic[id]['compactness']
     conectivity= params_test_dic[id]['connectivity'] #False
     print ("test and params id: ",id, n_segms, sigma, compact, conectivity)
-    
+    time_start = time.time()
     props_df_sel[id], segments_slic_sel = img_slic_segment_gen_df(bands_sel, \
                                                 image_band_dic, img_sel=img_sel,\
                                                 n_segms=n_segms, sigma=sigma, \
                                                 compactness = compact, mask=mask,\
                                                 conectivity=conectivity)
-
-    print(f'SLIC RGB number of segments : {props_df_sel[id].shape[0]}')
+    time_end = time.time()
+    print(f'SLIC RGB number of segments : {props_df_sel[id].shape[0]} Time elapsed: {round(time_end - time_start, 2)}s')
     if True: #is_multiple(id, 20): #para salvar cada arquivo de teste
     # Save to pickle file if the number is a multiple of 3
         obj_dic = {}
@@ -855,19 +860,22 @@ def read_props_df_sel(ids, open_path, obj_to_read='props_df_sel',output=True):
     read a list of props_df_sel and returns them as a dicionary
     '''
     
-    props_df_sel={}
+    dic_df={}
     for id in tqdm(ids):      #ids #ids_file
         if obj_to_read == 'props_df_sel':
             file_to_open = open_path + '_'+str(id)+'.pkl'
+            with open(file_to_open, 'rb') as handle: 
+                b = pickle.load(handle)
+            dic_df[id] = b[id][obj_to_read][id]
         elif obj_to_read == "segments_slic_sel":
             file_to_open = open_path + '_segments_'+str(id)+'.pkl'
-
+            with open(file_to_open, 'rb') as handle: 
+                b = pickle.load(handle)
+            dic_df[id] = b[obj_to_read][id]
         print (file_to_open) if output else None
-        with open(file_to_open, 'rb') as handle: 
-            b = pickle.load(handle)
-        props_df_sel[id] = b[id][obj_to_read][id]
         
-    return props_df_sel     
+        
+    return dic_df     
     
 #%%    
 result_stats_df = concat_dfs(stats_df_dic)
@@ -902,7 +910,7 @@ with open(file_to_save, 'rb') as handle:
     result_stats_df = pickle.load(handle)
 
 #%%
-# to get min values of each slected column
+# to get min values of each selected column
 min_std_row={}
 list_test_ids_min=[]
 number_std_min=5
@@ -1109,9 +1117,280 @@ plt.imshow(mark_boundaries(img_sel, segments_slic_sel))
 ########################################################
 #       Cluster                                        #
 ########################################################
+# functions for clustering analysis
+#%%
+def plot_cluster_img(img_sel_norm, props_df_sel, segments_slic_sel, id_test, \
+                     bands_sel, bands_sel_others, cl, n, limiar=0.7, \
+                     chart_size = (12, 12)):
+    # Create a figure with 2 rows and 3 columns
+    #nrows = len(list_cluster)
+    fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True, figsize=chart_size)
+    #for i,n in enumerate(list_cluster):
+    # Original Image
+    r = 0
+    c = 0
+    axes[r, c].imshow(img_sel_norm)
+    axes[r, c].set_title(f'Original Image', fontsize=7)
+    axes[r, c].axis('off')
+    # Image segmented with discrete colormap
+    r = 0
+    c += 1
+    cl = {0: 'red', 1: 'green', 2: 'blue', 3:'white', 4:'orange', 5:'yellow', 6:'magenta', 7:'cyan'}
+    for i, row in props_df_sel[id_test].iterrows():
+        axes[r, c].plot(row['centroid-1'], row['centroid-0'], marker='o', markersize=2, color=cl[row['cluster_'+str(n)]])
+    axes[r, c].imshow(mark_boundaries(img_sel_norm, segments_slic_sel[id_test]))
+    axes[r, c].set_title(f'Image segmented {id_test} discrete colormap', fontsize=7)
+    axes[r, c].axis('off')
+    # Image segmented with continuous colormap
+    var_show=False
+    if var_show:
+            r = 0
+            c += 1
+            colormap=plt.get_cmap('viridis')
+            for i, row in props_df_sel[id_test].iterrows():
+                color = colormap(row['cluster_8'] / 7)
+                axes[r, c].plot(row['centroid-1'], row['centroid-0'], marker='o', markersize=2, color=color)
+            axes[r, c].imshow(mark_boundaries(img_sel_norm, segments_slic_sel[id_test]))
+            axes[r, c].set_title(f'Image segmented clustered{id_test} continuous colormap', fontsize=7)
+            axes[r, c].axis('off')
+    else:
+        r = 0
+        c += 1
+        # bands_sel = ['B11','B8A','B02']
+        # bands_sel_others = ['NBR','EVI','NDVI']
+        maxBand = props_df_sel[id_test][['std_'+band for band in bands_sel]].max().max()
+        std_threshold_RGB = limiar*maxBand
+        maxBandOther = props_df_sel[id_test][['std_'+band for band in bands_sel_others]].max().max()
+        std_threshold_Other = limiar*maxBandOther
+        for i, row in props_df_sel[id_test].iterrows():
+            #color = colormap(row['cluster_8'] / 7)
+            if (row['std_B11'] >=std_threshold_RGB)|(row['std_B8A']>=std_threshold_RGB)|(row['std_B02']>=std_threshold_RGB):
+                color=cl[0]
+                axes[r, c].plot(row['centroid-1'], row['centroid-0'], marker='o', markersize=2, color=cl[0])
+                
+            elif (row['std_NBR'] >=std_threshold_Other)|(row['std_EVI']>=std_threshold_Other)|(row['std_NDVI']>=std_threshold_Other):
+                color=cl[2]
+                axes[r, c].plot(row['centroid-1'], row['centroid-0'], marker='o', markersize=2, color=color)
+        axes[r, c].imshow(mark_boundaries(img_sel_norm, segments_slic_sel[id_test]))
+        axes[r, c].set_title(f'Image segmented clustered{id_test} with std>70%*maxStdBand', fontsize=7)
+        axes[r, c].axis('off')
+    for cc in range(0,3):
+        axes[1,cc].axis('off')
+        axes[1,cc].set_visible(False)
+    plt.tight_layout()
+    plt.show()
+#%%
+def plot_clusters_img(img_sel_norm, props_df_sel, segments_slic_sel, id_test, \
+                     bands_sel, bands_sel_others, cl,list_cluster, limiar=0.7, \
+                     chart_size = (12, 12)):
+    ''''
+    function to plot in each line the original image and the clustered one
+    '''
+    # Create a figure with 2 rows and 3 columns
+    
+    #fig, axes = plt.subplots(nrows=len(list_cluster), ncols=3, sharex=True, sharey=True, figsize=chart_size)
+    fig, axes = plt.subplots(nrows=len(list_cluster), ncols=3, figsize=chart_size)
+    cl = {0: 'red', 1: 'green', 2: 'blue', 3:'white', 4:'orange', 5:'yellow', 6:'magenta', 7:'cyan'}
+    for i,n in enumerate(list_cluster):
+        # Original Image
+        r = i
+        c = 0
+        axes[r, c].imshow(img_sel_norm)
+        axes[r, c].set_title(f'Original Image', fontsize=7)
+        axes[r, c].axis('off')
+
+        # Image segmented with discrete colormap
+        #r = 0
+        c += 1
+        col_cluster='cluster_'+str(n)
+        
+        for ii, row in props_df_sel[id_test].iterrows():
+            axes[r, c].plot(row['centroid-1'], row['centroid-0'], marker='o', markersize=2, color=cl[row['cluster_'+str(n)]])
+        axes[r, c].imshow(mark_boundaries(img_sel_norm, segments_slic_sel[id_test]))
+        axes[r, c].set_title(f'Image segmented {id_test} {n} clusters', fontsize=7)
+        axes[r, c].axis('off')
+
+        ##### make boxplot
+        #for i, id_test in enumerate(tests):
+        # data1 = props_df_sel[id_test]['std_B11']
+        # data2 = props_df_sel[id_test]['std_B8A']
+        # data3 = props_df_sel[id_test]['std_B02']
+        #fig.add_trace(px.box(y=[data1,data2,data3]).data[0],  row=r, col=c)
+        
+        stdbands = ['std_'+band for band in bands_sel_others]
+        df = props_df_sel[id_test][stdbands+[col_cluster]]
+        #df_melted = pd.melt(df, id_vars=[col_cluster], value_vars=stdbands, var_name='std_band')
+        
+        c+=1
+        df.boxplot(column=['std_NBR', 'std_NDVI', 'std_EVI'], by=col_cluster, ax=axes[r,c], grid=False)
+
+        #box = px.box(df, x=col_cluster, y=[stdbands], points="all", color=col_cluster, facet_col='variable')
+        #box = px.box(df_melted, x='std_band', y='value', color=col_cluster, points="all", facet_col=col_cluster)
+        # fig.add_trace(box.data[0],  row=r, col=c)
+        # fig.update_traces(showlegend=True, legendgroup=id_test, name=id_test, row=r, col=c)
+        # fig.update_layout(showlegend=True, title_font=dict(size=10), width=chart_size[0], height=chart_size[1])
+        
+    # Update subtitle font size for all subplots
+    # for annotation in fig['layout']['annotations']:
+    #     annotation['font'] = dict(size=10)
+
+        ######
+        # Image segmented with continuous colormap
+
+        ''''
+        #var_show=False
+        # if var_show:
+        #     r = 0
+        #     c += 1
+        #     colormap=plt.get_cmap('viridis')
+        #     for i, row in props_df_sel[id_test].iterrows():
+        #         color = colormap(row['cluster_8'] / 7)
+        #         axes[r, c].plot(row['centroid-1'], row['centroid-0'], marker='o', markersize=2, color=color)
+        #     axes[r, c].imshow(mark_boundaries(img_sel_norm, segments_slic_sel[id_test]))
+        #     axes[r, c].set_title(f'Image segmented clustered{id_test} continuous colormap', fontsize=7)
+        #     axes[r, c].axis('off')
+        # else:
+        #     r = 0
+        #     c += 1
+        #     # bands_sel = ['B11','B8A','B02']
+        #     # bands_sel_others = ['NBR','EVI','NDVI']
+        #     maxBand = props_df_sel[id_test][['std_'+band for band in bands_sel]].max().max()
+        #     std_threshold_RGB = limiar*maxBand
+        #     maxBandOther = props_df_sel[id_test][['std_'+band for band in bands_sel_others]].max().max()
+        #     std_threshold_Other = limiar*maxBandOther
+        #     for i, row in props_df_sel[id_test].iterrows():
+        #         #color = colormap(row['cluster_8'] / 7)
+        #         if (row['std_B11'] >=std_threshold_RGB)|(row['std_B8A']>=std_threshold_RGB)|(row['std_B02']>=std_threshold_RGB):
+        #             color=cl[0]
+        #             axes[r, c].plot(row['centroid-1'], row['centroid-0'], marker='o', markersize=2, color=cl[0])
+                    
+        #         elif (row['std_NBR'] >=std_threshold_Other)|(row['std_EVI']>=std_threshold_Other)|(row['std_NDVI']>=std_threshold_Other):
+        #             color=cl[2]
+        #             axes[r, c].plot(row['centroid-1'], row['centroid-0'], marker='o', markersize=2, color=color)
+        #     axes[r, c].imshow(mark_boundaries(img_sel_norm, segments_slic_sel[id_test]))
+        #     axes[r, c].set_title(f'Image segmented clustered{id_test} with std>70%*maxStdBand', fontsize=7)
+        #     axes[r, c].axis('off')
+        '''
+
+    # for cc in range(0,3):
+    #     axes[r,cc].axis('off')
+    #     axes[r,cc].set_visible(False)
+    plt.tight_layout()
+    plt.show()
+#%%
+plot_clusters_img(img_sel_norm, props_df_sel, segments_slic_sel, id_test, \
+                     bands_sel, bands_sel_others, cl,[2,3,4,5,6,7,8], limiar=0.7, \
+                     )  
+
+#%%
+def plot_images_cluster(img_sel_norm,props_df_sel, segments_slic_sel, id_test,\
+                        list_cluster, n_cols=3, chart_size=(12, 12)):
+    ''''
+    funcion to plot clustered images in cols and rows with the original in 
+    first position
+    '''
+    #tests = list(props_df_sel.keys())
+    #n_cols = 3
+    num_plots=len(list_cluster)+1
+    n_rows = np.ceil(num_plots/n_cols).astype(int)
+    sub_titles=[]
+    for k in list_cluster:
+        # segms=f"{params_test_dic[k]['segms']}/{props_df_sel[k].shape[0]}"
+        # compact=params_test_dic[k]['compactness']
+        # sigma=params_test_dic[k]['sigma']
+        # conect=params_test_dic[k]['connectivity']
+        subt=f'cluster_{k}'
+        sub_titles.append(subt)
+    
+    cl = {0: 'red', 1: 'green', 2: 'blue', 3:'white', 4:'orange', \
+          5:'yellow', 6:'magenta', 7:'cyan'}
+ 
+    fig,axes = plt.subplots(nrows=int(n_rows), ncols=n_cols, sharex=True, sharey=True,figsize=chart_size)
+    #axes = axes.flatten()
+
+    for i, n in enumerate([0]+list_cluster):
+                
+        #df = props_df_sel[id_test][['std_B11','std_B8A','std_B02']]
+        r = (i//n_cols)# + 1-1
+        c = (i%n_cols)#+1-1
+        #print (r,c)
+        if (r==0) & (i==0):
+            axes[r, c].imshow(img_sel_norm)
+            axes[r, c].set_title(f'Original Image', fontsize=7)
+            axes[r, c].axis('off')
+            continue
+
+        #axes[r,c].imshow(mark_boundaries(img_sel, segments_slic_sel[id_test]))
+        
+        for ii, row in props_df_sel[id_test].iterrows():
+            axes[r, c].plot(row['centroid-1'], row['centroid-0'], marker='o', markersize=2, color=cl[row['cluster_'+str(n)]])
+        axes[r, c].imshow(mark_boundaries(img_sel_norm, segments_slic_sel[id_test]))
+        axes[r, c].set_title(f'Image segmented {id_test} {n} clusters', fontsize=7)
+               
+        # Customize subplot title
+        #axes[r,c].set_title(sub_titles[i], fontsize=7)
+
+        # Hide axis ticks and labels
+        axes[r,c].axis('off')
+        
+        #print (i, id_test. r,c)
+        #box = px.box(df)
+        #fig.add_trace(box.data[0],  row=r, col=c)
+        #fig.update_traces(showlegend=True, legendgroup=id_test, name=id_test, row=r, col=c)
+    
+    # tem que setar visible to false the subs plots to complement the grid
+    # of subplots
+    num_subs = n_cols*n_rows
+    if (num_plots)< num_subs:
+        for cc in range(c+1,n_cols):
+            #print (r,cc)
+            axes[r,cc].axis('off')
+            axes[r,cc].set_visible(False)
+
+    #fig.update_layout(showlegend=True, title_font=dict(size=10), width=chart_size[0], height=chart_size[1])
+
+    # # Update subtitle font size for all subplots
+    # for annotation in fig['layout']['annotations']:
+    #     annotation['font'] = dict(size=10)
+
+    # Adjust layout
+    plt.tight_layout()
+    plt.show()
+    #fig.show()
+
+#%%
+def plot_box_clusters(props_df_sel, id_test, list_cluster, stdbands):
+    ''''
+    plot box plot of bands per subgroup in cluster
+    '''
+    # Create grouped box plots for each group
+    for group in list_cluster:
+        col_cluster='cluster_'+str(group)
+        # Filter data for the current group
+        df = props_df_sel[id_test][stdbands+[col_cluster]]
+        df_melted = pd.melt(df, id_vars=[col_cluster], value_vars=stdbands, var_name='std_band')
+
+        filtered_data = df_melted[df_melted[col_cluster].isin(range(group))]
+
+        # Create a grouped box plot
+        fig = px.box(filtered_data, x='std_band', y='value', color=col_cluster, points="all", facet_col=col_cluster, facet_col_wrap=3)
+        
+        # Update layout
+        fig.update_layout(title=f'Group {group} - Boxplot das bandas por clusters', showlegend=False)
+        del df, df_melted, filtered_data
+        # Show the figure
+        fig.show()
+#%%
+plot_box_clusters(props_df_sel, id_test, list_cluster, stdbands)
+######
+#%%
+list_cluster=[2,3,4,5,6,7,8]
+plot_images_cluster(img_sel_norm,props_df_sel, segments_slic_sel, id_test,\
+                        list_cluster, n_cols=3, chart_size=(12, 12))
 #%% # ler arquivos props selecionados
 id_test=314
 ids = [id_test]
+#%%
 props_df_sel=read_props_df_sel(ids, save_path)
 #%%
 segments_slic_sel=read_props_df_sel(ids,save_path, obj_to_read='segments_slic_sel')
@@ -1152,48 +1431,241 @@ for n in tqdm(range(2, n_clusters+1)):
     #adiciona a info do cluster no df
     props_df_sel[id_test]['cluster_'+str(n)]= labels_sel[props_df_sel[id_test].index]
 #%%
+obj_dic={}
+obj_dic = {
+    "props_df_sel_cluster": props_df_sel,
+    "dic_labels_cluster": dic_cluster
+}
+file_to_save = save_path + '_cluster_'+str(id_test)+'.pkl'
+save_to_pickle(obj_dic, file_to_save)
+#%%
 matrix_sim={}
 #%%
 matrix_sim[id_test] = cria_SimilarityMatrix_freq(dic_cluster)
 
 #%%
+obj_dic={}
+obj_dic = {
+    "props_df_sel_cluster": props_df_sel,
+    "dic_labels_cluster": dic_cluster,
+    "matrix_sim":matrix_sim
+}
+file_to_save = save_path + '_cluster_'+str(id_test)+'.pkl'
+save_to_pickle(obj_dic, file_to_save)
+#%%
 #atribui a cor nao precisa fazer isso
 #props_df_sel['color'] = props_df_sel.apply(lambda row: cl[row['cluster_3']], axis=1)
+#%% # read file of id_test with cluster info
+file_to_open = save_path + '_cluster_'+str(id_test)+'.pkl'
+with open(file_to_open, 'rb') as handle: 
+    b_props_cluster = pickle.load(handle)
+
+
+props_df_sel[id_test]=b_props_cluster['props_df_sel_cluster'][id_test]
+matrix_sim={}
+matrix_sim[id_test]=b_props_cluster['matrix_sim'][id_test]
+
+file_to_open = save_path + '_segments_'+str(id_test)+'.pkl'
+with open(file_to_open, 'rb') as handle: 
+    b = pickle.load(handle)
+segments_slic_sel[id_test]= b['segments_slic_sel'][id_test]
 
 #%%
 cl = {0: 'red', 1: 'green', 2: 'blue', 3:'white', 4:'orange', 5:'yellow', 6:'magenta', 7:'cyan'}
-#%%
+#%% # show original image, segmented image , segmented image with std >limiar clustered
+bands_sel_others = ['NBR','EVI','NDVI']
+plot_cluster_img(img_sel_norm, props_df_sel, segments_slic_sel, id_test,\
+                  bands_sel, bands_sel_others, cl, 8)
+
+#%%  #code for plot the same as it is in plot_cluster_img()
+# Create a figure with 2 rows and 3 columns
+chart_size = (12, 12)
+fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True, figsize=chart_size)
+
+# Original Image
+r = 0
+c = 0
+axes[r, c].imshow(img_sel_norm)
+axes[r, c].set_title(f'Original Image', fontsize=7)
+axes[r, c].axis('off')
+
+# Image segmented with discrete colormap
+r = 0
+c += 1
+cl = {0: 'red', 1: 'green', 2: 'blue', 3:'white', 4:'orange', 5:'yellow', 6:'magenta', 7:'cyan'}
+for i, row in props_df_sel[id_test].iterrows():
+    axes[r, c].plot(row['centroid-1'], row['centroid-0'], marker='o', markersize=2, color=cl[row['cluster_8']])
+axes[r, c].imshow(mark_boundaries(img_sel_norm, segments_slic_sel[id_test]))
+axes[r, c].set_title(f'Image segmented {id_test} discrete colormap', fontsize=7)
+axes[r, c].axis('off')
+
+# Image segmented with continuous colormap
+
+var_show=False
+if var_show:
+    r = 0
+    c += 1
+    colormap=plt.get_cmap('viridis')
+    for i, row in props_df_sel[id_test].iterrows():
+        color = colormap(row['cluster_8'] / 7)
+        axes[r, c].plot(row['centroid-1'], row['centroid-0'], marker='o', markersize=2, color=color)
+    axes[r, c].imshow(mark_boundaries(img_sel_norm, segments_slic_sel[id_test]))
+    axes[r, c].set_title(f'Image segmented clustered{id_test} continuous colormap', fontsize=7)
+    axes[r, c].axis('off')
+else:
+    r = 0
+    c += 1
+    #bands_sel = ['B11','B8A','B02']
+    
+    maxBand = props_df_sel[id_test][['std_'+band for band in bands_sel]].max().max()
+    std_threshold_RGB = 0.7*maxBand
+    maxBandOther = props_df_sel[id_test][['std_'+band for band in bands_sel_others]].max().max()
+    std_threshold_Other = 0.7*maxBandOther
+    for i, row in props_df_sel[id_test].iterrows():
+        #color = colormap(row['cluster_8'] / 7)
+        if (row['std_B11'] >=std_threshold_RGB)|(row['std_B8A']>=std_threshold_RGB)|(row['std_B02']>=std_threshold_RGB):
+            color=cl[0]
+            axes[r, c].plot(row['centroid-1'], row['centroid-0'], marker='o', markersize=2, color=cl[0])
+            
+        elif (row['std_NBR'] >=std_threshold_Other)|(row['std_EVI']>=std_threshold_Other)|(row['std_NDVI']>=std_threshold_Other):
+            color=cl[2]
+            axes[r, c].plot(row['centroid-1'], row['centroid-0'], marker='o', markersize=2, color=color)
+    axes[r, c].imshow(mark_boundaries(img_sel_norm, segments_slic_sel[id_test]))
+    axes[r, c].set_title(f'Image segmented clustered{id_test} with std>70%*maxStdBand', fontsize=7)
+    axes[r, c].axis('off')
+
+for cc in range(0,3):
+    axes[1,cc].axis('off')
+    axes[1,cc].set_visible(False)
+plt.tight_layout()
+plt.show()
+
+
+#%% #show segmented image using a discrete colormap
 for i, row in props_df_sel[id_test].iterrows():
     plt.plot(row['centroid-1'], row['centroid-0'], marker='o',markersize=2, color=cl[row['cluster_8']])
 plt.imshow(mark_boundaries(img_sel_norm, segments_slic_sel[id_test]))
 plt.show()
+
+#%% #show segmented image using a continuos colormap
+colormap=plt.get_cmap('viridis')
+for i, row in props_df_sel[id_test].iterrows():
+    c=colormap(row['cluster_8']/7)
+    plt.plot(row['centroid-1'], row['centroid-0'], marker='o',markersize=2, color=c)
+plt.imshow(mark_boundaries(img_sel_norm, segments_slic_sel[id_test]))
+
+#%% #show segmented image of std of one band using a continuos colormap
+stdBand = 'std_B11'
+maxBand = props_df_sel[id_test][stdBand].max()
+minBand = props_df_sel[id_test][stdBand].min()
+for i, row in props_df_sel[id_test].iterrows():
+    c=colormap(row[stdBand]/maxBand)
+    plt.plot(row['centroid-1'], row['centroid-0'], marker='o',markersize=2, color=c)
+
+img_plot = plt.imshow(mark_boundaries(img_sel_norm, segments_slic_sel[id_test]))
+##%% #add colorbar for reference
+# Add colorbar for reference
+# Create a colorbar axis
+divider = make_axes_locatable(plt.gca())
+cax = divider.append_axes("right", size="5%", pad=0.1)
+
+norm = plt.Normalize(minBand, maxBand)  # Adjust the range based on your 'cluster_8' values
+sm = plt.cm.ScalarMappable(cmap=colormap, norm=norm)
+sm.set_array([])  # Dummy array for the ScalarMappable
+cbar = plt.colorbar(sm,cax=cax, orientation='vertical', label=stdBand)
+# Set colorbar ticks and format
+cbar.locator = MaxNLocator(nbins=5)  # Adjust the number of ticks as needed
+cbar.formatter = FormatStrFormatter('%d')  # Format ticks as integers
+
+# Update ticks
+cbar.update_ticks()
+plt.show()
 #%%
-plt.imshow(img_sel_norm)
+def plot_imgSeg_std(img_sel_norm, props_df_sel,segments_slic_sel, id_test,\
+                    bands_sel, colorm='YlOrRd'):
+    #plot in 3 columns img std RGB
+    fig, axes = plt.subplots(nrows=2, ncols=3, sharex=True, sharey=True, figsize=chart_size)
+
+    # RB11 band
+    r = 0
+    #c = 0
+    #bands_sel = ['B11', 'B8A', 'B02']
+    maxBand = props_df_sel[id_test][['std_'+band for band in bands_sel]].max().max()
+    minBand = props_df_sel[id_test][['std_'+band for band in bands_sel]].min().min()    
+    colormap=plt.get_cmap(colorm)#'viridis', 'Wistia', 'cool', 'bwr','YlOrRd'
+    # colormaps in https://matplotlib.org/stable/users/explain/colors/colormaps.html
+    for c, band in enumerate(bands_sel):
+        stdBand = 'std_'+band
+        # maxBand = props_df_sel[id_test][stdBand].max()
+        # minBand = props_df_sel[id_test][stdBand].min()    
+        
+        for i, row in props_df_sel[id_test].iterrows():
+            color=colormap(row[stdBand]/maxBand)
+            axes[r,c].plot(row['centroid-1'], row['centroid-0'], marker='o',markersize=2, color=color)
+            
+        img_plot=axes[r,c].imshow(mark_boundaries(img_sel_norm, segments_slic_sel[id_test]))
+        axes[r,c].set_title(f'Image segmented {id_test} {stdBand}', fontsize=7)
+        axes[r,c].axis('off')
+        
+
+    for cc in range(0,3):
+        axes[1,cc].axis('off')
+        axes[1,cc].set_visible(False)
+
+
+    plt.tight_layout()
+    plt.show()
+#%%
+plot_imgSeg_std(img_sel_norm, props_df_sel,segments_slic_sel, id_test,\
+                    bands_sel, colorm='hot')
+
+#%%
+#plot img, img with cluster, box plot of band_sel_other for each group of cluster
+
+#########
+#%%
+# Create a grid for the subplot with two rows and one column
+gs = gridspec.GridSpec(2, 1, height_ratios=[1, 0.05], hspace=0.05)
+
+# Set the colorbar in the second row
+cbar = plt.colorbar(img_plot, cax=plt.subplot(gs[1]), orientation='horizontal', label='Cluster')
+
+# Show the plot
+plt.show()
+#%%
+plt.imshow(mark_boundaries(img_sel_norm, segments_slic_sel[id_test]))
+#plt.imshow(img_sel_norm)
 #%%
 #criar uma visualizacao onde se passa um centroid e todos os centroids que tem um valor de similaridademaior que 0,75
 #sao colocados na mesma cor na imagem
 #criar um dataframe para o ponto a ser mostrado
-centroid_sel = 16 #16, 11
+centroid_sel = 14 #16, 11
 centroid_sel_df = props_df_sel[id_test][['label', 'centroid-0','centroid-1']]
 centroid_row_matrix_sim = matrix_sim[id_test][centroid_sel,:]
 #%%
 centroid_sel_df['sim_value'] = centroid_row_matrix_sim
+
+#%% #filter just the sim values higher than threshold
+threshold = 0.85
+filter_centroid_sel_df = centroid_sel_df[centroid_sel_df['sim_value']>=threshold]
+filter_centroid_sel_df['cor'] = 'green'
+filter_centroid_sel_df.loc[centroid_sel,'cor']='red'
 #%%
 def set_value(row):
-    if row['sim_value'] >= 0.75:
-        return 'white'
+    if row['sim_value'] >= 0.85:
+        return 'orange'
     else:
-        return 'blue'
+        return 'white'
 #%%
 # Apply the custom function to create a new column 'NewColumn'
 centroid_sel_df['cor'] = centroid_sel_df.apply(set_value, axis=1)
-
+centroid_sel_df.loc[centroid_sel,'cor']='red'
 #%%
-for i, row in centroid_sel_df.iterrows():
+for i, row in filter_centroid_sel_df.iterrows():
     if i == centroid_sel:
         print ("centroid=",i)
         marker = 's'
-        markersz = 3
+        markersz = 5
     else:
         marker = 'o'
         markersz=2
