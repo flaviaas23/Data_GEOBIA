@@ -4,6 +4,8 @@
 
 data/test_segm_results
 data/test_segm_results_sem_mask
+data/Cassio
+data/git
 notebooks/images/
 notebooks/get_data_geobia_output_plot_segmentation.ipynb
 tif/

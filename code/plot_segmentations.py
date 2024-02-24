@@ -92,6 +92,7 @@ from matplotlib import gridspec
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.ticker import MaxNLocator, FormatStrFormatter
 from matplotlib.colorbar import Colorbar
+#%%
 import numpy as np
 
 from skimage.data import astronaut,lily, immunohistochemistry
@@ -109,6 +110,7 @@ import plotly.express as px
 import psutil
 import time
 import sys
+
 from itertools import product
 
 import pickle
@@ -179,7 +181,8 @@ plt.imshow(image, cmap='gray')
 plt.show()
 
 #%%
-file_nbr = '/Library/Frameworks/R.framework/Versions/4.3-x86_64/Resources/library/sitsdata/extdata/Rondonia-20LMR/SENTINEL-2_MSI_20LMR_NBR_2022-07-16.tif'
+file_img_dir = '/Library/Frameworks/R.framework/Versions/4.3-x86_64/Resources/library/sitsdata/extdata/Rondonia-20LMR/'
+file_nbr = file_img_dir+'SENTINEL-2_MSI_20LMR_NBR_2022-07-16.tif'
 file_evi = '/Library/Frameworks/R.framework/Versions/4.3-x86_64/Resources/library/sitsdata/extdata/Rondonia-20LMR/SENTINEL-2_MSI_20LMR_EVI_2022-07-16.tif'
 file_ndvi = '/Library/Frameworks/R.framework/Versions/4.3-x86_64/Resources/library/sitsdata/extdata/Rondonia-20LMR/SENTINEL-2_MSI_20LMR_NDVI_2022-07-16.tif'
 file_blue = '/Library/Frameworks/R.framework/Versions/4.3-x86_64/Resources/library/sitsdata/extdata/Rondonia-20LMR/SENTINEL-2_MSI_20LMR_B02_2022-07-16.tif'
@@ -465,11 +468,11 @@ test_seg_slic_param(350, compactness,conectivity=conectivity, sigma=2)
 # 4. Adiciona as informacoes das bandas como colunas no df criado
 # 5. Adiciona o desvio padrao para cada segmento em cada banda
 
-import pandas as pd
+
 #%%
 def is_multiple(num, multiple):
     return num % multiple == 0
-
+#%%
 def save_to_pickle(data, filename):
     with open(filename, 'wb') as file:
         pickle.dump(data, file, protocol=pickle.HIGHEST_PROTOCOL)
@@ -480,7 +483,7 @@ def save_to_pickle(data, filename):
 #%%
 def get_labels(clusters, len_arraybands_list):
     ''''
-    retorna os labels de cada elemento baseado no seu indice
+    retorna uma lista com os labels de cada elemento baseado no seu indice
     '''
     labels = []
     for elemento_procurado in range(len_arraybands_list): 
@@ -492,7 +495,7 @@ def get_labels(clusters, len_arraybands_list):
     
     return np.array(labels)
 #%%
-def load_image_files(files_name):
+def load_image_files(files_name,pos=-2):
     ''''
     load tiff image bands files of a timestamp
     '''
@@ -501,8 +504,9 @@ def load_image_files(files_name):
     image_band_dic={}
     for f in files_name:
         band = f.split("_")
-        bands_name.append(band[-2])
-        image_band_dic[band[-2]] = imageio.imread(f)
+        print (f,band[pos])
+        bands_name.append(band[pos])
+        image_band_dic[band[pos]] = imageio.imread(f)
 
     return image_band_dic
 #%%
@@ -637,7 +641,7 @@ def cria_SimilarityMatrix_freq(dic_cluster):
             #print ("sil= ",sil,"\ncluster = ",cluster)
             for i in range(0, (nrow)):            
                 #print ("i = ",i)
-                for j in range(0, nrow):
+                for j in range(i, nrow): #for j in range(0, nrow):
                     #print ("j = ",j , cluster[i], cluster[j], sil[i], sil[j])
                     if cluster[i] == cluster[j]:
 
@@ -647,10 +651,13 @@ def cria_SimilarityMatrix_freq(dic_cluster):
 
             #print ("freq_matrix = \n", freq_matrix)
         freq_matrix= freq_matrix/len(n_clusters)
+        #para rebater a matrix (18/02/2024)
+        freq_matrix=freq_matrix+np.triu(freq_matrix,1).T
+        #
         #print ("freq_matrix = \n", freq_matrix)
         return freq_matrix        
 #%%
-def plot_box(props_df_sel, params_test_dic, stdbands=['std_B11','std_B8A','std_B02'],n_cols=2, chart_size=(800, 600)):
+def plot_box(props_df_sel, params_test_dic, stdbands=[7],n_cols=2, chart_size=(800, 600)):
     ''''
     funcion to plot box in cols and lines
     '''
@@ -751,6 +758,39 @@ def plot_images(img_sel,props_df_sel, segments_slic_sel, params_test_dic, n_cols
     plt.show()
     #fig.show()
 
+#%%
+def save_img_png(file_red, file_green, file_blue):
+    ''''
+    save tif rgb bands toa png file
+    '''
+    from PIL import Image
+
+    # Open each band file
+    r_band = Image.open(file_red)
+    g_band = Image.open(file_green)
+    b_band = Image.open(file_blue)
+
+    # Convert PIL Images to Numpy arrays
+    npRed   = np.array(r_band)
+    npGreen = np.array(g_band)
+    npBlue  = np.array(b_band)
+
+    npRed[npRed < 0]     = 0
+    npBlue[npBlue < 0]   = 0
+    npGreen[npGreen < 0] = 0
+
+    max = np.max([npRed,npGreen,npBlue])
+
+    # Scale all channels equally to range 0..255 to fit in a PNG (could use 65,535 and np.uint16 instead)
+    R = (npRed * 255/max).astype(np.uint8)
+    G = (npGreen * 255/max).astype(np.uint8)
+    B = (npBlue * 255/max).astype(np.uint8)
+
+    # Build a PNG
+    RGB = np.dstack((R,G,B))
+
+    #Image.fromarray(RGB).save('result.png')
+    return RGB
 
 #%%    
 #0.
@@ -797,6 +837,7 @@ stats_df_dic={}
 props_df_sel = {}
  
 segments_slic_sel ={}
+#%%
 all_bands = ['B11', 'B8A', 'B02', 'NBR', 'EVI', 'NDVI']
 bands_sel = ['B11', 'B8A', 'B02'] # R,G,B bands selection for slic segmentation
 img_sel = np.dstack((image_band_dic[bands_sel[0]], image_band_dic[bands_sel[1]], image_band_dic[bands_sel[2]]))
@@ -969,6 +1010,10 @@ plot_box(props_df_sel, params_test_dic, chart_size=(900,900))
 #%%
 plot_images(img_sel_norm, props_df_sel, segments_slic_sel, params_test_dic, n_cols=3)    
 
+#%%
+RGB = save_img_png(file_red, file_green, file_blue)
+#plot_images(RGB, props_df_sel, segments_slic_sel, params_test_dic, n_cols=3)    #nao está funcionando
+plt.imshow(mark_boundaries(RGB, segments_slic_sel[id_test]))
 #%% # filter higher stds in RGB,  box plot filtered and show image
 std = float(2000)
 id_test = 314
@@ -1113,7 +1158,7 @@ fig = px.box(df_RGB, x='RGB', y='Valor RGB',
 fig.show()
 del array_resultante, df_RGB
 #%% usando o n_segs =600
-plt.imshow(mark_boundaries(img_sel, segments_slic_sel))
+plt.imshow(mark_boundaries(img_sel, segments_slic_sel[id_test]))
 ########################################################
 #       Cluster                                        #
 ########################################################
@@ -1277,6 +1322,22 @@ def plot_clusters_img(img_sel_norm, props_df_sel, segments_slic_sel, id_test, \
     #     axes[r,cc].set_visible(False)
     plt.tight_layout()
     plt.show()
+
+#%%
+def optimal_number_of_clusters(wcss,min_cl, max_cl):
+    import math
+    x1, y1 = min_cl, wcss[0]
+    x2, y2 = max_cl, wcss[len(wcss)-1]
+
+    distances = []
+    for i in range(len(wcss)):
+        x0 = i+2
+        y0 = wcss[i]
+        numerator = abs((y2-y1)*x0 - (x2-x1)*y0 + x2*y1 - y2*x1)
+        denominator = math.sqrt((y2 - y1)**2 + (x2 - x1)**2)
+        distances.append(numerator/denominator)
+    
+    return distances.index(np.max(distances)) + min_cl
 #%%
 plot_clusters_img(img_sel_norm, props_df_sel, segments_slic_sel, id_test, \
                      bands_sel, bands_sel_others, cl,[2,3,4,5,6,7,8], limiar=0.7, \
@@ -1305,6 +1366,7 @@ def plot_images_cluster(img_sel_norm,props_df_sel, segments_slic_sel, id_test,\
     cl = {0: 'red', 1: 'green', 2: 'blue', 3:'white', 4:'orange', \
           5:'yellow', 6:'magenta', 7:'cyan'}
  
+    cl = plt.get_cmap('tab20')
     fig,axes = plt.subplots(nrows=int(n_rows), ncols=n_cols, sharex=True, sharey=True,figsize=chart_size)
     #axes = axes.flatten()
 
@@ -1323,9 +1385,99 @@ def plot_images_cluster(img_sel_norm,props_df_sel, segments_slic_sel, id_test,\
         #axes[r,c].imshow(mark_boundaries(img_sel, segments_slic_sel[id_test]))
         
         for ii, row in props_df_sel[id_test].iterrows():
-            axes[r, c].plot(row['centroid-1'], row['centroid-0'], marker='o', markersize=2, color=cl[row['cluster_'+str(n)]])
+            axes[r, c].plot(row['centroid-1'], row['centroid-0'], marker='o', markersize=2, color=cl(row['cluster_'+str(n)]))
         axes[r, c].imshow(mark_boundaries(img_sel_norm, segments_slic_sel[id_test]))
         axes[r, c].set_title(f'Image segmented {id_test} {n} clusters', fontsize=7)
+               
+        # Customize subplot title
+        #axes[r,c].set_title(sub_titles[i], fontsize=7)
+
+        # Hide axis ticks and labels
+        axes[r,c].axis('off')
+        
+        #print (i, id_test. r,c)
+        #box = px.box(df)
+        #fig.add_trace(box.data[0],  row=r, col=c)
+        #fig.update_traces(showlegend=True, legendgroup=id_test, name=id_test, row=r, col=c)
+    
+    # tem que setar visible to false the subs plots to complement the grid
+    # of subplots
+    num_subs = n_cols*n_rows
+    if (num_plots)< num_subs:
+        for cc in range(c+1,n_cols):
+            #print (r,cc)
+            axes[r,cc].axis('off')
+            axes[r,cc].set_visible(False)
+
+    #fig.update_layout(showlegend=True, title_font=dict(size=10), width=chart_size[0], height=chart_size[1])
+
+    # # Update subtitle font size for all subplots
+    # for annotation in fig['layout']['annotations']:
+    #     annotation['font'] = dict(size=10)
+
+    # Adjust layout
+    plt.tight_layout()
+    plt.show()
+    #fig.show()
+
+#%%
+def plot_images_cluster_clara(img_sel_norm,filter_centroid_sel_df,  id_test,\
+                        list_clara,label_value, n_cols=3, cl_map='Blues', chart_size=(12, 12)):
+    ''''
+    funcion to plot clustered images in cols and rows with the original in 
+    first position
+    '''
+    #tests = list(props_df_sel.keys())
+    #n_cols = 3
+    num_plots=len(list_clara)+1
+    n_rows = np.ceil(num_plots/n_cols).astype(int)
+    sub_titles=[]
+    for k in list_clara:
+        # segms=f"{params_test_dic[k]['segms']}/{props_df_sel[k].shape[0]}"
+        # compact=params_test_dic[k]['compactness']
+        # sigma=params_test_dic[k]['sigma']
+        # conect=params_test_dic[k]['connectivity']
+        subt=f'{k}'
+        sub_titles.append(subt)
+    
+    #cl = {0: 'red', 1: 'green', 2: 'blue', 3:'white', 4:'orange', \
+    #      5:'yellow', 6:'magenta', 7:'cyan'}
+ 
+    cl = plt.get_cmap(cl_map)      # 'tab20'
+    fig,axes = plt.subplots(nrows=int(n_rows), ncols=n_cols, sharex=True, sharey=True,figsize=chart_size)
+    #axes = axes.flatten()
+
+    for i, n in enumerate(list_clara):
+                
+        #df = props_df_sel[id_test][['std_B11','std_B8A','std_B02']]
+        r = (i//n_cols)# + 1-1
+        c = int(i%n_cols)#+1-1
+        #print (r,c)
+        if (r==0) & (i==0):
+            axes[r, c].imshow(img_sel_norm)
+            axes[r, c].set_title(f'Original Image', fontsize=7)
+            axes[r, c].axis('off')
+            continue
+
+        #axes[r,c].imshow(mark_boundaries(img_sel, segments_slic_sel[id_test]))
+        
+        for ii, row in filter_centroid_sel_df[n].iterrows():
+            if ii == label_value-1:
+                marker = 's'
+                markersz = 2
+                cor='red'     
+                #print (row['centroid-1'], row['centroid-0'], marker,markersz, cor)           
+            else:
+                marker = 'o'
+                markersz=1
+                cor=cl(row['sim_value'])
+            axes[r,c].plot(row['centroid-1'], row['centroid-0'], marker=marker,markersize=markersz, color=cor)#row['cor'])
+            #axes[r, c].plot(row['centroid-1'], row['centroid-0'], marker='o', markersize=2, color=cl(row['cluster_'+str(n)]))
+            for p in row['coords']:
+               axes[r,c].plot(p[1], p[0], marker=marker,markersize=markersz, color=cor)#row['cor'])
+        axes[r,c].imshow(img_sel_norm)
+        #axes[r, c].imshow(mark_boundaries(img_sel_norm, segments_slic_sel[id_test]))
+        axes[r, c].set_title(f'Image segmented {id_test} {k}', fontsize=7)
                
         # Customize subplot title
         #axes[r,c].set_title(sub_titles[i], fontsize=7)
@@ -1385,8 +1537,9 @@ plot_box_clusters(props_df_sel, id_test, list_cluster, stdbands)
 ######
 #%%
 list_cluster=[2,3,4,5,6,7,8]
+list_cluster2=[x for x in range(2,41)]
 plot_images_cluster(img_sel_norm,props_df_sel, segments_slic_sel, id_test,\
-                        list_cluster, n_cols=3, chart_size=(12, 12))
+                        list_cluster2, n_cols=3, chart_size=(12, 12))
 #%% # ler arquivos props selecionados
 id_test=314
 ids = [id_test]
@@ -1410,7 +1563,45 @@ random.seed(999) # para gerar sempre com a mesma seed
 
 #%%
 dic_cluster = {}
+#%% #CLARA
+
+from sklearn_extra.cluster import CLARA
+#from sklearn.datasets import make_blobs
+
+#for n in range (2, n_clusters+1):
+    
+#X, _ = make_blobs(centers=[[0,0],[1,1]], n_features=2,random_state=0)
 #%%
+n_clusters=40 
+dic_cluster={}
+sse=[]
+for n in range (2, n_clusters+1):
+    #clara = timedcall(CLARA(n_clusters=n, random_state=0).fit(arraybands_sel))
+    time_ini = time.time()
+    clara = CLARA(n_clusters=n,n_sampling=40+2*n,n_sampling_iter=5, random_state=0).fit(arraybands_sel)
+    clusters_sel = clara.predict(arraybands_sel)
+    time_fim = time.time()
+    print (f'tempo de execucao para {n}: {time_fim-time_ini}')
+    #15/02/2024: nao me lembro pq preciso fazer o get_lebels aqui
+    # labels_sel = get_labels(clusters_sel.tolist(), len(arraybands_sel))
+    # dic_cluster[n] = labels_sel
+    dic_cluster[n] = clusters_sel.tolist()
+    sse.append(clara.inertia_)
+    #adiciona a info do cluster no df
+    #props_df_sel[id_test]['cluster_'+str(n)]= labels_sel[props_df_sel[id_test].index]
+
+    props_df_sel[id_test]['cluster_'+str(n)]=clusters_sel
+#%%
+n_opt = optimal_number_of_clusters(sse, 2, n_clusters)
+#%%
+plt.plot(range(2,n_clusters+1),sse)
+
+#plt.plot([2, sse[0]], [n_clusters, sse[-1]], color='red', linestyle='--')
+plt.plot([2, n_clusters], [sse[0], sse[-1]], 'r--', label='Linha de Referência')
+#plt.xsticks(range(2,n_clusters+1))
+plt.show()
+#%%
+#CLARANS
 n_clusters =  8 #number of clusters
 
 for n in tqdm(range(2, n_clusters+1)):
@@ -1450,13 +1641,13 @@ obj_dic = {
     "dic_labels_cluster": dic_cluster,
     "matrix_sim":matrix_sim
 }
-file_to_save = save_path + '_cluster_'+str(id_test)+'.pkl'
+file_to_save = save_path + '_cluster_clara_20_5iter_'+str(id_test)+'.pkl'
 save_to_pickle(obj_dic, file_to_save)
 #%%
 #atribui a cor nao precisa fazer isso
 #props_df_sel['color'] = props_df_sel.apply(lambda row: cl[row['cluster_3']], axis=1)
 #%% # read file of id_test with cluster info
-file_to_open = save_path + '_cluster_'+str(id_test)+'.pkl'
+file_to_open = save_path + '_cluster_clara_20_5iter_'+str(id_test)+'.pkl'
 with open(file_to_open, 'rb') as handle: 
     b_props_cluster = pickle.load(handle)
 
@@ -1464,7 +1655,7 @@ with open(file_to_open, 'rb') as handle:
 props_df_sel[id_test]=b_props_cluster['props_df_sel_cluster'][id_test]
 matrix_sim={}
 matrix_sim[id_test]=b_props_cluster['matrix_sim'][id_test]
-
+#%%
 file_to_open = save_path + '_segments_'+str(id_test)+'.pkl'
 with open(file_to_open, 'rb') as handle: 
     b = pickle.load(handle)
@@ -1639,18 +1830,26 @@ plt.imshow(mark_boundaries(img_sel_norm, segments_slic_sel[id_test]))
 #criar uma visualizacao onde se passa um centroid e todos os centroids que tem um valor de similaridademaior que 0,75
 #sao colocados na mesma cor na imagem
 #criar um dataframe para o ponto a ser mostrado
-centroid_sel = 14 #16, 11
-centroid_sel_df = props_df_sel[id_test][['label', 'centroid-0','centroid-1']]
-centroid_row_matrix_sim = matrix_sim[id_test][centroid_sel,:]
+centroid_sel = 5728#40 #14 #16, 11
 #%%
-centroid_sel_df['sim_value'] = centroid_row_matrix_sim
+def get_df_filter(centroid_sel, props_df_sel, matrix_sim, id_test, threshold=0.85):
+    #centroid_sel_df = props_df_sel[id_test][['label', 'centroid-0','centroid-1', 'coords']]
+    centroid_sel_df = props_df_sel[id_test][['label','std_NBR','std_EVI','std_NDVI' , 'num_pixels','centroid-0','centroid-1', 'coords']]
 
-#%% #filter just the sim values higher than threshold
-threshold = 0.85
-filter_centroid_sel_df = centroid_sel_df[centroid_sel_df['sim_value']>=threshold]
-filter_centroid_sel_df['cor'] = 'green'
-filter_centroid_sel_df.loc[centroid_sel,'cor']='red'
+    centroid_row_matrix_sim = matrix_sim[id_test][centroid_sel-1,:]
+    
+    centroid_sel_df['sim_value'] = centroid_row_matrix_sim
+
+    #filter just the sim values higher than threshold
+    #threshold = 0.70
+    filter_centroid_sel_df = centroid_sel_df[centroid_sel_df['sim_value']>=threshold]
+    filter_centroid_sel_df['cor'] = 'blue'
+    filter_centroid_sel_df.loc[centroid_sel-1,'cor']='red'
+
+    return filter_centroid_sel_df
+
 #%%
+#nao preciso fazer isso:
 def set_value(row):
     if row['sim_value'] >= 0.85:
         return 'orange'
@@ -1661,17 +1860,132 @@ def set_value(row):
 centroid_sel_df['cor'] = centroid_sel_df.apply(set_value, axis=1)
 centroid_sel_df.loc[centroid_sel,'cor']='red'
 #%%
-for i, row in filter_centroid_sel_df.iterrows():
-    if i == centroid_sel:
-        print ("centroid=",i)
-        marker = 's'
-        markersz = 5
+def plot_cluster_img_pixel_sel(filter_centroid_sel_df, centroid_sel, cl_map='Blues'):
+    ''''
+    plot similares clusters of pixel selected in image
+    '''
+    colormap=plt.get_cmap(cl_map)
+    time_ini = time.time()
+    for i, row in filter_centroid_sel_df.iterrows():
+        if i == centroid_sel-1:
+            #print ("centroid=",i, row['label'], row['cor'])
+            marker = 's'
+            markersz = 2
+            c='red'
+        else:
+            marker = 'o'
+            markersz=1
+            c=colormap(row['sim_value'])
+        plt.plot(row['centroid-1'], row['centroid-0'], marker=marker,markersize=markersz, color=c)#row['cor'])
+        x_pixels = [p[1] for p in row['coords']]
+        y_pixels = [p[0] for p in row['coords']]
+        plt.plot(x_pixels, y_pixels, marker=marker,markersize=markersz, color=c)#row['cor'])
+        # for p in row['coords']:
+        #     plt.plot(p[1], p[0], marker=marker,markersize=markersz, color=c)#row['cor'])
+    time_fim = time.time()
+    print (time_fim-time_ini)
+    #to show image with segmentation
+    #plt.imshow(mark_boundaries(img_sel_norm, segments_slic_sel[id_test]))
+    plt.imshow(img_sel_norm)
+    plt.axis('off')
+    plt.tight_layout()
+    plt.show()
+
+#%%
+def calc_cor(valor, c_map='Blues'):
+    colormap=plt.get_cmap(c_map)
+    #colormap=plt.get_cmap('Blues')
+    return colormap(valor) 
+#%%
+def plot_cluster_img_pixel_sel_faster(filter_centroid_sel_df, centroid_sel, \
+                                      cl_map='Blues', plot_centroids=False):
+    ''''
+    plot similares clusters of pixel selected in image
+    '''
+    filter_centroid_sel_df['cor'] = filter_centroid_sel_df['sim_value'].apply(calc_cor, 'Blues')
+    filter_centroid_sel_df.loc[centroid_sel-1,'cor']='red'
+    
+    time_ini = time.time()    
+    
+    if (plot_centroids):
+        x_centroids=[x for x in filter_centroid_sel_df['centroid-1']]
+        y_centroids=[y for y in filter_centroid_sel_df['centroid-0']]
+        plt.scatter(x_centroids, y_centroids,s=1, color=list(filter_centroid_sel_df['cor']))
+
+    # lista_original = list(filter_centroid_sel_df['coords'])
+    # x_pixels = [p[1] for sublist in lista_original for p in sublist]
+    # #x_pixels = #[p[1] for p in filter_centroid_sel_df['coords']]
+    # y_pixels = [p[0] for sublist in lista_original for p in sublist]
+    # # plt.plot(x_pixels, y_pixels, marker='o',markersize=1, color='blue')#filter_centroid_sel_df['cor'])
+    # plt.scatter(x_pixels, y_pixels, s=1, color='blue')
+    
     else:
-        marker = 'o'
-        markersz=2
-    plt.plot(row['centroid-1'], row['centroid-0'], marker=marker,markersize=markersz, color=row['cor'])
-plt.imshow(mark_boundaries(img_sel_norm, segments_slic_sel[id_test]))
-plt.show()
+        x_sel= filter_centroid_sel_df.loc[centroid_sel-1, 'centroid-1']
+        y_sel= filter_centroid_sel_df.loc[centroid_sel-1, 'centroid-0']
+        plt.scatter(x_sel, y_sel,s=1, color='red')
+        #plt.plot(x_sel, y_sel,marker='o',markersize=1, color='red')
+
+        df_exploded=filter_centroid_sel_df.explode('coords')
+        x_pixels = [p[1] for p in list(df_exploded['coords'])]
+        y_pixels = [p[0] for p in list(df_exploded['coords'])]
+        plt.scatter(x_pixels, y_pixels, s=1, color=df_exploded['cor'])
+    
+    time_fim = time.time()
+    print (time_fim-time_ini)
+    #to show image with segmentation
+    #plt.imshow(mark_boundaries(img_sel_norm, segments_slic_sel[id_test]))
+    plt.imshow(img_sel_norm)
+    plt.axis('off')
+    plt.tight_layout()
+    plt.show()
+
+#%%
+colormap=plt.get_cmap('Blues')
+filter_centroid_sel_df = get_df_filter(centroid_sel, props_df_sel, id_test, threshold=0.85)
+#%%
+plot_cluster_img_pixel_sel(filter_centroid_sel_df, centroid_sel)
+#%%
+#plot clara filtered pixel selected
+
+#%% # read file of id_test with cluster info
+props_df_sel_clara={}
+matrix_sim_clara={}
+#%%
+#clara_test = '_cluster_clara_200_'
+clara_tests = ['_cluster_clara_','_cluster_clara_200_', '_cluster_clara_400_5iter_']
+
+for cla in clara_tests:
+
+    file_to_open = save_path + cla +str(id_test)+'.pkl'
+    print (file_to_open)
+    with open(file_to_open, 'rb') as handle: 
+        b_props_cluster = pickle.load(handle)
+
+    if cla not in props_df_sel_clara:
+        props_df_sel_clara[cla]={}
+    props_df_sel_clara[cla][id_test]=b_props_cluster['props_df_sel_cluster'][id_test]
+    
+    if cla not in matrix_sim_clara:
+        matrix_sim_clara[cla]={}
+    matrix_sim_clara[cla][id_test]=b_props_cluster['matrix_sim'][id_test]
+    del b_props_cluster
+#%%
+filter_centroid_sel_df_clara={}
+#%%
+centroid_sel=5205
+for cla in clara_tests:
+    filter_centroid_sel_df_clara[cla] = get_df_filter(centroid_sel, props_df_sel_clara[cla],\
+                                            matrix_sim_clara[cla],id_test, threshold=0.70)
+#%%
+cla = '_cluster_clara_'
+for cla in [cla]:#clara_tests:
+    print (cla)
+    plot_cluster_img_pixel_sel_faster(filter_centroid_sel_df_clara[cla], centroid_sel,plot_centroids=False)
+#%% #plot images clara tests for pixel selected
+plot_images_cluster_clara(img_sel_norm,filter_centroid_sel_df_clara,  id_test,\
+                        clara_tests,centroid_sel, n_cols=3, cl_map='Blues', chart_size=(12, 12))
+
+
 #%%
 # show the similarity/co-association matrix using a heatmap
 import plotly.express as px
