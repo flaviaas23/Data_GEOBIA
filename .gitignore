@@ -1,12 +1,16 @@
 # Created by https://www.toptal.com/developers/gitignore/api/venv,python,visualstudiocode
 # Edit at https://www.toptal.com/developers/gitignore?templates=venv,python,visualstudiocode
 
-
+NLCD2011_LC_Pennsylvania.zip
 data/test_segm_results/
 data/test_segm_results_sem_mask/
 data/Cassio/
 data/git/
+data/2teste.parquet/
+data/parquet/
+data/parquet_npart111514/
 data/img_png/
+data/tmp/
 notebooks/images/
 notebooks/get_data_geobia_output_plot_segmentation.ipynb
 tif/
