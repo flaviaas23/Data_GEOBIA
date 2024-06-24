@@ -17,10 +17,6 @@ from streamlit_js_eval import streamlit_js_eval
 #st.set_page_config(layout="wide")
 # '''
 # programa usado para avaliacao do CLARA e CLARANS na imagem exemplo
-# para executar este programa:
-# a partir do dir /Users/flaviaschneider/Documents/flavia/Data_GEOBIA
-# executar:
-# python -m streamlit run code/app_st/geo_vis.py
 # '''
 def local_css(file_name):
     with open(file_name) as f:

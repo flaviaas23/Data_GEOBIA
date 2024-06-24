@@ -624,12 +624,13 @@ def img_slic_segment_gen_df(bands_sel, image_band_dic, img_sel='', n_segms=600, 
 
 
 #%%
-def cria_SimilarityMatrix_freq(dic_cluster):
+def cria_SimilarityMatrix_freq(dic_cluster,n_clusters=None):
         '''
         Generate a frequency/similarity/Co-association matrix based on 
         frequency of point are together in the clustering of pixels
         '''
-        n_clusters = list(dic_cluster.keys())  
+        if not n_clusters:
+            n_clusters = list(dic_cluster.keys())  
         nrow = len(dic_cluster[n_clusters[0]])
         print ("nrow= {}, len nclusters = {}".format(nrow, len(n_clusters)))
         s = (nrow, nrow)
@@ -647,6 +648,8 @@ def cria_SimilarityMatrix_freq(dic_cluster):
 
                         #freq = (sil[i]+sil[j]+2)/4
                         freq_matrix[i,j] += 1 # freq
+
+                        #freq_matrix[j,i] = freq_matrix[i,j]
                         #print ("j = ",j , cluster[i], cluster[j], sil[i], sil[j], freq)
 
             #print ("freq_matrix = \n", freq_matrix)
@@ -797,6 +800,7 @@ def save_img_png(file_red, file_green, file_blue):
 files_name=[file_nbr,file_evi, file_ndvi, file_red, file_green, file_blue]
 image_band_dic = {}
 image_band_dic = load_image_files(files_name)
+
 #%%
 ### Automation Tests to identify the optimun parameters for segmentation
 c_segms = [1000, 11000, 2000]  # segms[0]: start, segms[1]: stop, segms[2]: step
@@ -843,7 +847,7 @@ bands_sel = ['B11', 'B8A', 'B02'] # R,G,B bands selection for slic segmentation
 img_sel = np.dstack((image_band_dic[bands_sel[0]], image_band_dic[bands_sel[1]], image_band_dic[bands_sel[2]]))
 # quando um pixel é -9999 numa banda tmabém é nas outras RGB 
 # a mask que deve ser passada para o slic é só um valor True ou false por pixel
-
+#%%
 mask = (image_band_dic[bands_sel[0]] !=-9999)
 #%%
 for id in tqdm(ids):
@@ -1572,7 +1576,7 @@ from sklearn_extra.cluster import CLARA
     
 #X, _ = make_blobs(centers=[[0,0],[1,1]], n_features=2,random_state=0)
 #%%
-n_clusters=40 
+n_clusters=30 
 dic_cluster={}
 sse=[]
 for n in range (2, n_clusters+1):
@@ -1593,6 +1597,7 @@ for n in range (2, n_clusters+1):
     props_df_sel[id_test]['cluster_'+str(n)]=clusters_sel
 #%%
 n_opt = optimal_number_of_clusters(sse, 2, n_clusters)
+n_opt
 #%%
 plt.plot(range(2,n_clusters+1),sse)
 
@@ -1625,29 +1630,36 @@ for n in tqdm(range(2, n_clusters+1)):
 obj_dic={}
 obj_dic = {
     "props_df_sel_cluster": props_df_sel,
-    "dic_labels_cluster": dic_cluster
+    "dic_labels_cluster": dic_cluster,
+    "n_opt": n_opt
 }
-file_to_save = save_path + '_cluster_'+str(id_test)+'.pkl'
+file_to_save = save_path + '_cluster_clara_'+str(id_test)+'.pkl'
 save_to_pickle(obj_dic, file_to_save)
 #%%
 matrix_sim={}
 #%%
-matrix_sim[id_test] = cria_SimilarityMatrix_freq(dic_cluster)
-
+n_clusters=list(range(2,int(n_opt*1.2)+1))
+time_ini=time.time()
+#matrix_sim[id_test] = cria_SimilarityMatrix_freq(dic_cluster)
+matrix_sim[id_test] = cria_SimilarityMatrix_freq(dic_cluster,n_clusters=n_clusters )
+time_fim=time.time()
+print (time_fim-time_ini)
 #%%
 obj_dic={}
 obj_dic = {
     "props_df_sel_cluster": props_df_sel,
     "dic_labels_cluster": dic_cluster,
+    "n_opt": n_opt,
     "matrix_sim":matrix_sim
 }
-file_to_save = save_path + '_cluster_clara_20_5iter_'+str(id_test)+'.pkl'
+file_to_save = save_path + '_cluster_clara_matrixsim_nopt_'+str(id_test)+'.pkl'
 save_to_pickle(obj_dic, file_to_save)
 #%%
 #atribui a cor nao precisa fazer isso
 #props_df_sel['color'] = props_df_sel.apply(lambda row: cl[row['cluster_3']], axis=1)
 #%% # read file of id_test with cluster info
-file_to_open = save_path + '_cluster_clara_20_5iter_'+str(id_test)+'.pkl'
+id_test=314
+file_to_open = save_path + '_cluster_clara_'+str(id_test)+'.pkl'
 with open(file_to_open, 'rb') as handle: 
     b_props_cluster = pickle.load(handle)
 
@@ -1655,6 +1667,8 @@ with open(file_to_open, 'rb') as handle:
 props_df_sel[id_test]=b_props_cluster['props_df_sel_cluster'][id_test]
 matrix_sim={}
 matrix_sim[id_test]=b_props_cluster['matrix_sim'][id_test]
+
+
 #%%
 file_to_open = save_path + '_segments_'+str(id_test)+'.pkl'
 with open(file_to_open, 'rb') as handle: 
@@ -1952,7 +1966,8 @@ props_df_sel_clara={}
 matrix_sim_clara={}
 #%%
 #clara_test = '_cluster_clara_200_'
-clara_tests = ['_cluster_clara_','_cluster_clara_200_', '_cluster_clara_400_5iter_']
+#clara_tests = ['_cluster_clara_','_cluster_clara_200_', '_cluster_clara_400_5iter_']
+clara_tests = ['_cluster_clara_','_cluster_clara_matrixsim_nopt_']
 
 for cla in clara_tests:
 
@@ -1977,7 +1992,7 @@ for cla in clara_tests:
     filter_centroid_sel_df_clara[cla] = get_df_filter(centroid_sel, props_df_sel_clara[cla],\
                                             matrix_sim_clara[cla],id_test, threshold=0.70)
 #%%
-cla = '_cluster_clara_'
+cla = '_cluster_clara_matrixsim_nopt_'#'_cluster_clara_'
 for cla in [cla]:#clara_tests:
     print (cla)
     plot_cluster_img_pixel_sel_faster(filter_centroid_sel_df_clara[cla], centroid_sel,plot_centroids=False)
