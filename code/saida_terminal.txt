@@ -1,0 +1,959 @@
+111513599    111513599 -352.522839 -366.387171 -754.721267
+pca_components dypes before merge:
+ orig_index    float64
+c1            float64
+c2            float64
+c3            float64
+dtype: object
+Fazer repartition in pca_components_df
+
+time to repartition in pca_components_df: 2.5987625122070312e-05 s 4.3312708536783854e-07
+deleted df_toPCA,pca_components_df2
+len divisions pca_components df: 111515
+***** type df_coords: <class 'dask.dataframe.core.DataFrame'>
+ type of df_toPCA_coords: <class 'dask.dataframe.core.DataFrame'>
+ type pca_compon: <class 'dask.dataframe.core.DataFrame'>
+Terminated: 15
+(.venv_data_geobia) MacBook-Air-M2:Data_GEOBIA flaviaschneider$ python code/Test_PCA_img_full_save_df.py 
+len(band_tile_img_files): 12
+1.5020370483398438e-05
+['B08', 'B04', 'B02', 'EVI', 'B03', 'NDVI'] ['20220728', '20220829'] 2
+/Users/flaviaschneider/Documents/flavia/Data_GEOBIA
+read time parquet files 4.07008695602417 s 0.06783478260040283 m
+df_toPCA
+    orig_index  coords_0  coords_1  B08_20220728  B04_20220728  B02_20220728  EVI_20220728  B03_20220728  NDVI_20220728  B04_20220829  B02_20220829  EVI_20220829  B03_20220829  B08_20220829  NDVI_20220829
+0           0         0         0          3296           274           348          4802           430           3844          1557          2107          6905          2113          3296           3844
+1           1         0         1          3404           260           350          4817           455           3853          1544          2110          6995          2119          3404           3853
+           orig_index  coords_0  coords_1  B08_20220728  B04_20220728  B02_20220728  EVI_20220728  B03_20220728  NDVI_20220728  B04_20220829  B02_20220829  EVI_20220829  B03_20220829  B08_20220829  NDVI_20220829
+111513598   111513598     10559     10558          3085           411           333          4266           505           5879           889          1174          6371          1210          3085           5879
+111513599   111513599     10559     10559          2960           340           301          4491           458           5928           871          1135          6264          1231          2960           5928
+df_toPCA_coords
+             coords_0  coords_1
+index_orig                    
+111513598      10559     10558
+111513599      10559     10559
+df_toPCA_coords types
+ coords_0    int64
+coords_1    int64
+dtype: object
+len divisions df_to_PCA_coords: 111515, n_part: 111514
+tempo para fazer dropna: 0.0058650970458984375
+read time pca parquet files 3.785479784011841 s 0.06309132973353068 m
+pca_components_df read
+              c1          c2          c3
+997 -393.059592 -240.948451 -890.369761
+998 -352.522839 -366.387171 -754.721267
+len divisions pca_components_df2 initial: 111515, n_part: 111514
+time to copy orig_index in pca_components_df: 0.1500699520111084 s 0.0025011658668518066
+pca_components df after insert col index original from df_toPCA:
+             orig_index          c1          c2          c3
+index_orig                                                
+111513598    111513598 -393.059592 -240.948451 -890.369761
+111513599    111513599 -352.522839 -366.387171 -754.721267
+pca_components dypes before merge:
+ orig_index    float64
+c1            float64
+c2            float64
+c3            float64
+dtype: object
+Fazer repartition in pca_components_df
+
+time to repartition in pca_components_df: 2.6941299438476562e-05 s 4.490216573079427e-07
+deleted df_toPCA,pca_components_df2
+len divisions pca_components df: 111515
+***** type df_coords: <class 'dask.dataframe.core.DataFrame'>
+ type of df_toPCA_coords: <class 'dask.dataframe.core.DataFrame'>
+ type pca_compon: <class 'dask.dataframe.core.DataFrame'>
+num de linhas:              coords_0  coords_1
+index_orig                    
+111513595      10559     10555
+111513596      10559     10556
+111513597      10559     10557
+111513598      10559     10558
+111513599      10559     10559
+time to gen df_pca: 0.2044379711151123
+
+pca_components_df_merge.tail():
+             coords_0  coords_1  orig_index           c1           c2         c3
+index_orig                                                                     
+98                 0        98        98.0 -2698.794299  2027.433921  67.092548
+99                 0        99         NaN          NaN          NaN        NaN 
+
+deleted df_toPCA_coords
+pca_components_df_merge.dtypes:
+coords_0        int64
+coords_1        int64
+orig_index      int64
+c1            float64
+c2            float64
+c3            float64
+dtype: object 
+<class 'dask.dataframe.core.DataFrame'>
+
+pca_components_df_merge.tail():
+             coords_0  coords_1  orig_index           c1           c2         c3
+index_orig                                                                     
+98                 0        98        98.0 -2698.794299  2027.433921  67.092548
+99                 0        99         NaN          NaN          NaN        NaN 
+
+components: ['c1', 'c2', 'c3'], next categorize
+gerar img_comp_dic para cada component
+type img_comp_dic:dask.array<values, shape=(nan, 100), dtype=float64, chunksize=(nan, 100), chunktype=numpy.ndarray>
+time to gen img_pca: 0.07216382026672363
+saving img_pca to /Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/parquet_npart111514/S2-16D_V2_012014_img_pca_npart111514_c1
+time to save img pca c1 to parquet file: 0.07887005805969238s, 0.0013145009676615398 m
+saving img_pca to /Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/parquet_npart111514/S2-16D_V2_012014_img_pca_npart111514_c2
+time to save img pca c2 to parquet file: 0.08264970779418945s, 0.0013774951299031575 m
+saving img_pca to /Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/parquet_npart111514/S2-16D_V2_012014_img_pca_npart111514_c3
+time to save img pca c3 to parquet file: 0.08633804321289062s, 0.0014389673868815103 m
+pca_components_df_merge.tail(2):
+             coords_0 coords_1  orig_index           c1           c2         c3
+index_orig                                                                    
+98                 0       98        98.0 -2698.794299  2027.433921  67.092548
+99                 0       99         NaN          NaN          NaN        NaN
+(.venv_data_geobia) MacBook-Air-M2:Data_GEOBIA flaviaschneider$ python code/Test_PCA_img_full_save_df.py 
+len(band_tile_img_files): 12
+1.5974044799804688e-05
+['B08', 'B04', 'B02', 'EVI', 'B03', 'NDVI'] ['20220728', '20220829'] 2
+/Users/flaviaschneider/Documents/flavia/Data_GEOBIA
+read time parquet files 4.610750198364258 s 0.0768458366394043 m
+df_toPCA
+    orig_index  coords_0  coords_1  B08_20220728  B04_20220728  B02_20220728  EVI_20220728  B03_20220728  NDVI_20220728  B04_20220829  B02_20220829  EVI_20220829  B03_20220829  B08_20220829  NDVI_20220829
+0           0         0         0          3296           274           348          4802           430           3844          1557          2107          6905          2113          3296           3844
+1           1         0         1          3404           260           350          4817           455           3853          1544          2110          6995          2119          3404           3853
+           orig_index  coords_0  coords_1  B08_20220728  B04_20220728  B02_20220728  EVI_20220728  B03_20220728  NDVI_20220728  B04_20220829  B02_20220829  EVI_20220829  B03_20220829  B08_20220829  NDVI_20220829
+111513598   111513598     10559     10558          3085           411           333          4266           505           5879           889          1174          6371          1210          3085           5879
+111513599   111513599     10559     10559          2960           340           301          4491           458           5928           871          1135          6264          1231          2960           5928
+df_toPCA_coords
+             coords_0  coords_1
+index_orig                    
+111513598      10559     10558
+111513599      10559     10559
+df_toPCA_coords types
+ coords_0    int64
+coords_1    int64
+dtype: object
+len divisions df_to_PCA_coords: 111515, n_part: 111514
+tempo para fazer dropna: 0.005748271942138672
+read time pca parquet files 5.358313083648682 s 0.08930521806081136 m
+pca_components_df read
+              c1          c2          c3
+997 -393.059592 -240.948451 -890.369761
+998 -352.522839 -366.387171 -754.721267
+len divisions pca_components_df2 initial: 111515, n_part: 111514
+time to copy orig_index in pca_components_df: 0.1538829803466797 s 0.0025647163391113283
+pca_components df after insert col index original from df_toPCA:
+             orig_index          c1          c2          c3
+index_orig                                                
+111513598    111513598 -393.059592 -240.948451 -890.369761
+111513599    111513599 -352.522839 -366.387171 -754.721267
+pca_components dypes before merge:
+ orig_index    float64
+c1            float64
+c2            float64
+c3            float64
+dtype: object
+Fazer repartition in pca_components_df
+
+time to repartition in pca_components_df: 2.5272369384765625e-05 s 4.212061564127604e-07
+deleted df_toPCA,pca_components_df2
+len divisions pca_components df: 111515
+/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/core.py:8017: UserWarning: Insufficient elements for `head`. 10000 elements requested, only 1000 elements available. Try passing larger `npartitions` to `head`.
+  warnings.warn(
+/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/core.py:8017: UserWarning: Insufficient elements for `head`. 10000 elements requested, only 1000 elements available. Try passing larger `npartitions` to `head`.
+  warnings.warn(
+***** type df_coords: <class 'dask.dataframe.core.DataFrame'>
+ type of df_toPCA_coords: <class 'dask.dataframe.core.DataFrame'>
+ type pca_compon: <class 'dask.dataframe.core.DataFrame'>
+num de linhas:              coords_0  coords_1
+index_orig                    
+111513595      10559     10555
+111513596      10559     10556
+111513597      10559     10557
+111513598      10559     10558
+111513599      10559     10559
+time to gen df_pca: 0.3166778087615967
+
+pca_components_df_merge.tail():
+             coords_0  coords_1  orig_index           c1           c2           c3
+index_orig                                                                       
+998                0       998         998 -1394.086100  2536.612613   973.314598
+999                0       999         999 -1488.376895  2208.072059  1312.019914 
+
+deleted df_toPCA_coords
+pca_components_df_merge.dtypes:
+coords_0        int64
+coords_1        int64
+orig_index      int64
+c1            float64
+c2            float64
+c3            float64
+dtype: object 
+<class 'dask.dataframe.core.DataFrame'>
+
+pca_components_df_merge.tail():
+             coords_0  coords_1  orig_index           c1           c2           c3
+index_orig                                                                       
+998                0       998         998 -1394.086100  2536.612613   973.314598
+999                0       999         999 -1488.376895  2208.072059  1312.019914 
+
+components: ['c1', 'c2', 'c3'], next categorize
+gerar img_comp_dic para cada component
+type img_comp_dic:dask.array<values, shape=(nan, 1000), dtype=float64, chunksize=(nan, 1000), chunktype=numpy.ndarray>
+time to gen img_pca: 0.7882990837097168
+saving img_pca to /Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/parquet_npart111514/S2-16D_V2_012014_img_pca_npart111514_c1
+time to save img pca c1 to parquet file: 0.830578088760376s, 0.013842968146006267 m
+saving img_pca to /Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/parquet_npart111514/S2-16D_V2_012014_img_pca_npart111514_c2
+time to save img pca c2 to parquet file: 0.8692600727081299s, 0.014487667878468832 m
+saving img_pca to /Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/parquet_npart111514/S2-16D_V2_012014_img_pca_npart111514_c3
+time to save img pca c3 to parquet file: 0.9680061340332031s, 0.016133435567220054 m
+pca_components_df_merge.tail(2):
+             coords_0 coords_1  orig_index           c1           c2           c3
+index_orig                                                                      
+998                0      998         998 -1394.086100  2536.612613   973.314598
+999                0      999         999 -1488.376895  2208.072059  1312.019914
+(.venv_data_geobia) MacBook-Air-M2:Data_GEOBIA flaviaschneider$ python code/Test_PCA_img_full_save_df.py 
+len(band_tile_img_files): 12
+1.5020370483398438e-05
+['B08', 'B04', 'B02', 'EVI', 'B03', 'NDVI'] ['20220728', '20220829'] 2
+/Users/flaviaschneider/Documents/flavia/Data_GEOBIA
+read time parquet files 4.108405828475952 s 0.06847343047459921 m
+df_toPCA
+    orig_index  coords_0  coords_1  B08_20220728  B04_20220728  B02_20220728  EVI_20220728  B03_20220728  NDVI_20220728  B04_20220829  B02_20220829  EVI_20220829  B03_20220829  B08_20220829  NDVI_20220829
+0           0         0         0          3296           274           348          4802           430           3844          1557          2107          6905          2113          3296           3844
+1           1         0         1          3404           260           350          4817           455           3853          1544          2110          6995          2119          3404           3853
+           orig_index  coords_0  coords_1  B08_20220728  B04_20220728  B02_20220728  EVI_20220728  B03_20220728  NDVI_20220728  B04_20220829  B02_20220829  EVI_20220829  B03_20220829  B08_20220829  NDVI_20220829
+111513598   111513598     10559     10558          3085           411           333          4266           505           5879           889          1174          6371          1210          3085           5879
+111513599   111513599     10559     10559          2960           340           301          4491           458           5928           871          1135          6264          1231          2960           5928
+df_toPCA_coords
+             coords_0  coords_1
+index_orig                    
+111513598      10559     10558
+111513599      10559     10559
+df_toPCA_coords types
+ coords_0    int64
+coords_1    int64
+dtype: object
+len divisions df_to_PCA_coords: 111515, n_part: 111514
+tempo para fazer dropna: 0.00570988655090332
+read time pca parquet files 3.9899168014526367 s 0.06649861335754395 m
+pca_components_df read
+              c1          c2          c3
+997 -393.059592 -240.948451 -890.369761
+998 -352.522839 -366.387171 -754.721267
+len divisions pca_components_df2 initial: 111515, n_part: 111514
+time to copy orig_index in pca_components_df: 0.1506972312927246 s 0.00251162052154541
+pca_components df after insert col index original from df_toPCA:
+             orig_index          c1          c2          c3
+index_orig                                                
+111513598    111513598 -393.059592 -240.948451 -890.369761
+111513599    111513599 -352.522839 -366.387171 -754.721267
+pca_components dypes before merge:
+ orig_index    float64
+c1            float64
+c2            float64
+c3            float64
+dtype: object
+Fazer repartition in pca_components_df
+
+time to repartition in pca_components_df: 2.6941299438476562e-05 s 4.490216573079427e-07
+deleted df_toPCA,pca_components_df2
+len divisions pca_components df: 111515
+/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/core.py:8017: UserWarning: Insufficient elements for `head`. 1000000 elements requested, only 1000 elements available. Try passing larger `npartitions` to `head`.
+  warnings.warn(
+/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/core.py:8017: UserWarning: Insufficient elements for `head`. 1000000 elements requested, only 1000 elements available. Try passing larger `npartitions` to `head`.
+  warnings.warn(
+***** type df_coords: <class 'dask.dataframe.core.DataFrame'>
+ type of df_toPCA_coords: <class 'dask.dataframe.core.DataFrame'>
+ type pca_compon: <class 'dask.dataframe.core.DataFrame'>
+num de linhas:              coords_0  coords_1
+index_orig                    
+111513595      10559     10555
+111513596      10559     10556
+111513597      10559     10557
+111513598      10559     10558
+111513599      10559     10559
+time to gen df_pca: 0.2938821315765381
+
+pca_components_df_merge.tail():
+             coords_0  coords_1  orig_index           c1           c2           c3
+index_orig                                                                       
+998                0       998         998 -1394.086100  2536.612613   973.314598
+999                0       999         999 -1488.376895  2208.072059  1312.019914 
+
+deleted df_toPCA_coords
+pca_components_df_merge.dtypes:
+coords_0        int64
+coords_1        int64
+orig_index      int64
+c1            float64
+c2            float64
+c3            float64
+dtype: object 
+<class 'dask.dataframe.core.DataFrame'>
+
+pca_components_df_merge.tail():
+             coords_0  coords_1  orig_index           c1           c2           c3
+index_orig                                                                       
+998                0       998         998 -1394.086100  2536.612613   973.314598
+999                0       999         999 -1488.376895  2208.072059  1312.019914 
+
+components: ['c1', 'c2', 'c3'], next categorize
+gerar img_comp_dic para cada component
+type img_comp_dic:dask.array<values, shape=(nan, 1000), dtype=float64, chunksize=(nan, 1000), chunktype=numpy.ndarray>
+time to gen img_pca: 0.7167351245880127
+saving img_pca to /Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/parquet_npart111514/S2-16D_V2_012014_img_pca_npart111514_c1
+time to save img pca c1 to parquet file: 0.7523388862609863s, 0.012538981437683106 m
+saving img_pca to /Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/parquet_npart111514/S2-16D_V2_012014_img_pca_npart111514_c2
+time to save img pca c2 to parquet file: 0.7865972518920898s, 0.013109954198201497 m
+saving img_pca to /Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/parquet_npart111514/S2-16D_V2_012014_img_pca_npart111514_c3
+time to save img pca c3 to parquet file: 0.8734991550445557s, 0.014558319250742595 m
+pca_components_df_merge.tail(2):
+             coords_0 coords_1  orig_index           c1           c2           c3
+index_orig                                                                      
+998                0      998         998 -1394.086100  2536.612613   973.314598
+999                0      999         999 -1488.376895  2208.072059  1312.019914
+(.venv_data_geobia) MacBook-Air-M2:Data_GEOBIA flaviaschneider$ python code/Test_PCA_img_full_save_df.py 
+len(band_tile_img_files): 12
+1.5020370483398438e-05
+['B08', 'B04', 'B02', 'EVI', 'B03', 'NDVI'] ['20220728', '20220829'] 2
+/Users/flaviaschneider/Documents/flavia/Data_GEOBIA
+read time parquet files 4.202126741409302 s 0.07003544569015503 m
+df_toPCA
+    orig_index  coords_0  coords_1  B08_20220728  B04_20220728  B02_20220728  EVI_20220728  B03_20220728  NDVI_20220728  B04_20220829  B02_20220829  EVI_20220829  B03_20220829  B08_20220829  NDVI_20220829
+0           0         0         0          3296           274           348          4802           430           3844          1557          2107          6905          2113          3296           3844
+1           1         0         1          3404           260           350          4817           455           3853          1544          2110          6995          2119          3404           3853
+           orig_index  coords_0  coords_1  B08_20220728  B04_20220728  B02_20220728  EVI_20220728  B03_20220728  NDVI_20220728  B04_20220829  B02_20220829  EVI_20220829  B03_20220829  B08_20220829  NDVI_20220829
+111513598   111513598     10559     10558          3085           411           333          4266           505           5879           889          1174          6371          1210          3085           5879
+111513599   111513599     10559     10559          2960           340           301          4491           458           5928           871          1135          6264          1231          2960           5928
+df_toPCA_coords
+             coords_0  coords_1
+index_orig                    
+111513598      10559     10558
+111513599      10559     10559
+df_toPCA_coords types
+ coords_0    int64
+coords_1    int64
+dtype: object
+len divisions df_to_PCA_coords: 111515, n_part: 111514
+tempo para fazer dropna: 0.0057811737060546875
+read time pca parquet files 3.668466329574585 s 0.06114110549290975 m
+pca_components_df read
+              c1          c2          c3
+997 -393.059592 -240.948451 -890.369761
+998 -352.522839 -366.387171 -754.721267
+len divisions pca_components_df2 initial: 111515, n_part: 111514
+time to copy orig_index in pca_components_df: 0.1500101089477539 s 0.0025001684824625652
+pca_components df after insert col index original from df_toPCA:
+             orig_index          c1          c2          c3
+index_orig                                                
+111513598    111513598 -393.059592 -240.948451 -890.369761
+111513599    111513599 -352.522839 -366.387171 -754.721267
+pca_components dypes before merge:
+ orig_index    float64
+c1            float64
+c2            float64
+c3            float64
+dtype: object
+Fazer repartition in pca_components_df
+
+time to repartition in pca_components_df: 2.2172927856445312e-05 s 3.695487976074219e-07
+deleted df_toPCA,pca_components_df2
+len divisions pca_components df: 111515
+/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/core.py:8017: UserWarning: Insufficient elements for `head`. 1000000 elements requested, only 1000 elements available. Try passing larger `npartitions` to `head`.
+  warnings.warn(
+/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/core.py:8017: UserWarning: Insufficient elements for `head`. 1000000 elements requested, only 1000 elements available. Try passing larger `npartitions` to `head`.
+  warnings.warn(
+***** type df_coords: <class 'dask.dataframe.core.DataFrame'>
+ type of df_toPCA_coords: <class 'dask.dataframe.core.DataFrame'>
+ type pca_compon: <class 'dask.dataframe.core.DataFrame'>
+num de linhas:              coords_0  coords_1
+index_orig                    
+111513595      10559     10555
+111513596      10559     10556
+111513597      10559     10557
+111513598      10559     10558
+111513599      10559     10559
+time to gen df_pca: 0.2927401065826416
+
+pca_components_df_merge.tail():
+             coords_0  coords_1  orig_index           c1           c2           c3
+index_orig                                                                       
+998                0       998         998 -1394.086100  2536.612613   973.314598
+999                0       999         999 -1488.376895  2208.072059  1312.019914 
+
+deleted df_toPCA_coords
+pca_components_df_merge.dtypes:
+coords_0        int64
+coords_1        int64
+orig_index      int64
+c1            float64
+c2            float64
+c3            float64
+dtype: object 
+<class 'dask.dataframe.core.DataFrame'>
+
+pca_components_df_merge.tail():
+             coords_0  coords_1  orig_index           c1           c2           c3
+index_orig                                                                       
+998                0       998         998 -1394.086100  2536.612613   973.314598
+999                0       999         999 -1488.376895  2208.072059  1312.019914 
+
+components: ['c1', 'c2', 'c3'], next categorize
+gerar img_comp_dic para cada component
+type img_comp_dic:dask.array<values, shape=(nan, 1000), dtype=float64, chunksize=(nan, 1000), chunktype=numpy.ndarray>
+time to gen img_pca: 0.7060770988464355
+saving img_pca to /Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/parquet_npart111514/S2-16D_V2_012014_img_pca_npart111514_c1
+time to save img pca c1 to parquet file: 0.7426481246948242s, 0.012377468744913737 m
+saving img_pca to /Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/parquet_npart111514/S2-16D_V2_012014_img_pca_npart111514_c2
+time to save img pca c2 to parquet file: 0.7767331600189209s, 0.012945552666982016 m
+saving img_pca to /Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/parquet_npart111514/S2-16D_V2_012014_img_pca_npart111514_c3
+time to save img pca c3 to parquet file: 0.865225076675415s, 0.014420417944590251 m
+pca_components_df_merge.tail(2):
+             coords_0 coords_1  orig_index           c1           c2           c3
+index_orig                                                                      
+998                0      998         998 -1394.086100  2536.612613   973.314598
+999                0      999         999 -1488.376895  2208.072059  1312.019914
+(.venv_data_geobia) MacBook-Air-M2:Data_GEOBIA flaviaschneider$ python code/Test_PCA_img_full_save_df.py 
+len(band_tile_img_files): 12
+1.6927719116210938e-05
+['B08', 'B04', 'B02', 'EVI', 'B03', 'NDVI'] ['20220728', '20220829'] 2
+/Users/flaviaschneider/Documents/flavia/Data_GEOBIA
+read time parquet files 4.4556121826171875 s 0.07426020304361979 m
+df_toPCA
+    orig_index  coords_0  coords_1  B08_20220728  B04_20220728  B02_20220728  EVI_20220728  B03_20220728  NDVI_20220728  B04_20220829  B02_20220829  EVI_20220829  B03_20220829  B08_20220829  NDVI_20220829
+0           0         0         0          3296           274           348          4802           430           3844          1557          2107          6905          2113          3296           3844
+1           1         0         1          3404           260           350          4817           455           3853          1544          2110          6995          2119          3404           3853
+           orig_index  coords_0  coords_1  B08_20220728  B04_20220728  B02_20220728  EVI_20220728  B03_20220728  NDVI_20220728  B04_20220829  B02_20220829  EVI_20220829  B03_20220829  B08_20220829  NDVI_20220829
+111513598   111513598     10559     10558          3085           411           333          4266           505           5879           889          1174          6371          1210          3085           5879
+111513599   111513599     10559     10559          2960           340           301          4491           458           5928           871          1135          6264          1231          2960           5928
+df_toPCA_coords
+             coords_0  coords_1
+index_orig                    
+111513598      10559     10558
+111513599      10559     10559
+df_toPCA_coords types
+ coords_0    int64
+coords_1    int64
+dtype: object
+len divisions df_to_PCA_coords: 111515, n_part: 111514
+tempo para fazer dropna: 0.0058782100677490234
+read time pca parquet files 4.0798351764678955 s 0.0679972529411316 m
+pca_components_df read
+              c1          c2          c3
+997 -393.059592 -240.948451 -890.369761
+998 -352.522839 -366.387171 -754.721267
+len divisions pca_components_df2 initial: 111515, n_part: 111514
+time to copy orig_index in pca_components_df: 0.1528308391571045 s 0.002547180652618408
+pca_components df after insert col index original from df_toPCA:
+             orig_index          c1          c2          c3
+index_orig                                                
+111513598    111513598 -393.059592 -240.948451 -890.369761
+111513599    111513599 -352.522839 -366.387171 -754.721267
+pca_components dypes before merge:
+ orig_index    float64
+c1            float64
+c2            float64
+c3            float64
+dtype: object
+Fazer repartition in pca_components_df
+
+time to repartition in pca_components_df: 2.8133392333984375e-05 s 4.688898722330729e-07
+deleted df_toPCA,pca_components_df2
+len divisions pca_components df: 111515
+/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/core.py:8017: UserWarning: Insufficient elements for `head`. 1000000 elements requested, only 1000 elements available. Try passing larger `npartitions` to `head`.
+  warnings.warn(
+/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/core.py:8017: UserWarning: Insufficient elements for `head`. 1000000 elements requested, only 1000 elements available. Try passing larger `npartitions` to `head`.
+  warnings.warn(
+***** type df_coords: <class 'dask.dataframe.core.DataFrame'>
+ type of df_toPCA_coords: <class 'dask.dataframe.core.DataFrame'>
+ type pca_compon: <class 'dask.dataframe.core.DataFrame'>
+num de linhas:              coords_0  coords_1
+index_orig                    
+111513595      10559     10555
+111513596      10559     10556
+111513597      10559     10557
+111513598      10559     10558
+111513599      10559     10559
+time to gen df_pca: 0.29122400283813477
+
+pca_components_df_merge.tail():
+    index_orig  coords_0  coords_1  orig_index           c1           c2           c3
+0         998         0       998         998 -1394.086100  2536.612613   973.314598
+1         999         0       999         999 -1488.376895  2208.072059  1312.019914 
+
+deleted df_toPCA_coords
+pca_components_df_merge.dtypes:
+index_orig      int64
+coords_0        int64
+coords_1        int64
+orig_index      int64
+c1            float64
+c2            float64
+c3            float64
+dtype: object 
+<class 'dask.dataframe.core.DataFrame'>
+
+pca_components_df_merge.tail():
+    index_orig  coords_0  coords_1  orig_index           c1           c2           c3
+0         998         0       998         998 -1394.086100  2536.612613   973.314598
+1         999         0       999         999 -1488.376895  2208.072059  1312.019914 
+
+components: ['c1', 'c2', 'c3'], next categorize
+gerar img_comp_dic para cada component
+type img_comp_dic:dask.array<values, shape=(nan, 1000), dtype=float64, chunksize=(nan, 1000), chunktype=numpy.ndarray>
+time to gen img_pca: 0.7155208587646484
+saving img_pca to /Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/parquet_npart111514/S2-16D_V2_012014_img_pca_npart111514_c1
+time to save img pca c1 to parquet file: 0.7516639232635498s, 0.012527732054392497 m
+saving img_pca to /Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/parquet_npart111514/S2-16D_V2_012014_img_pca_npart111514_c2
+time to save img pca c2 to parquet file: 0.8422579765319824s, 0.014037632942199707 m
+saving img_pca to /Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/parquet_npart111514/S2-16D_V2_012014_img_pca_npart111514_c3
+time to save img pca c3 to parquet file: 0.882166862487793s, 0.014702781041463216 m
+pca_components_df_merge.tail(2):
+    index_orig  coords_0 coords_1  orig_index           c1           c2           c3
+0         998         0      998         998 -1394.086100  2536.612613   973.314598
+1         999         0      999         999 -1488.376895  2208.072059  1312.019914
+(.venv_data_geobia) MacBook-Air-M2:Data_GEOBIA flaviaschneider$ python code/Test_PCA_img_full_save_df.py 
+len(band_tile_img_files): 12
+1.5974044799804688e-05
+['B08', 'B04', 'B02', 'EVI', 'B03', 'NDVI'] ['20220728', '20220829'] 2
+/Users/flaviaschneider/Documents/flavia/Data_GEOBIA
+read time parquet files 3.9685020446777344 s 0.06614170074462891 m
+df_toPCA
+    orig_index  coords_0  coords_1  B08_20220728  B04_20220728  B02_20220728  EVI_20220728  B03_20220728  NDVI_20220728  B04_20220829  B02_20220829  EVI_20220829  B03_20220829  B08_20220829  NDVI_20220829
+0           0         0         0          3296           274           348          4802           430           3844          1557          2107          6905          2113          3296           3844
+1           1         0         1          3404           260           350          4817           455           3853          1544          2110          6995          2119          3404           3853
+           orig_index  coords_0  coords_1  B08_20220728  B04_20220728  B02_20220728  EVI_20220728  B03_20220728  NDVI_20220728  B04_20220829  B02_20220829  EVI_20220829  B03_20220829  B08_20220829  NDVI_20220829
+111513598   111513598     10559     10558          3085           411           333          4266           505           5879           889          1174          6371          1210          3085           5879
+111513599   111513599     10559     10559          2960           340           301          4491           458           5928           871          1135          6264          1231          2960           5928
+df_toPCA_coords
+             coords_0  coords_1
+index_orig                    
+111513598      10559     10558
+111513599      10559     10559
+df_toPCA_coords types
+ coords_0    int64
+coords_1    int64
+dtype: object
+len divisions df_to_PCA_coords: 111515, n_part: 111514
+tempo para fazer dropna: 0.006186962127685547
+read time pca parquet files 4.3040080070495605 s 0.07173346678415934 m
+pca_components_df read
+              c1          c2          c3
+997 -393.059592 -240.948451 -890.369761
+998 -352.522839 -366.387171 -754.721267
+len divisions pca_components_df2 initial: 111515, n_part: 111514
+time to copy orig_index in pca_components_df: 0.15104413032531738 s 0.002517402172088623
+pca_components df after insert col index original from df_toPCA:
+             orig_index          c1          c2          c3
+index_orig                                                
+111513598    111513598 -393.059592 -240.948451 -890.369761
+111513599    111513599 -352.522839 -366.387171 -754.721267
+pca_components dypes before merge:
+ orig_index    float64
+c1            float64
+c2            float64
+c3            float64
+dtype: object
+Fazer repartition in pca_components_df
+
+time to repartition in pca_components_df: 2.6941299438476562e-05 s 4.490216573079427e-07
+deleted df_toPCA,pca_components_df2
+len divisions pca_components df: 111515
+***** type df_coords: <class 'dask.dataframe.core.DataFrame'>
+ type of df_toPCA_coords: <class 'dask.dataframe.core.DataFrame'>
+ type pca_compon: <class 'dask.dataframe.core.DataFrame'>
+num de linhas:              coords_0  coords_1
+index_orig                    
+111513595      10559     10555
+111513596      10559     10556
+111513597      10559     10557
+111513598      10559     10558
+111513599      10559     10559
+time to gen df_pca: 0.21564507484436035
+
+pca_components_df_merge.tail():
+    index_orig  coords_0  coords_1  orig_index           c1           c2         c3
+0          98         0        98        98.0 -2698.794299  2027.433921  67.092548
+1          99         0        99         NaN          NaN          NaN        NaN 
+
+deleted df_toPCA_coords
+pca_components_df_merge.dtypes:
+index_orig      int64
+coords_0        int64
+coords_1        int64
+orig_index      int64
+c1            float64
+c2            float64
+c3            float64
+dtype: object 
+<class 'dask.dataframe.core.DataFrame'>
+
+pca_components_df_merge.tail():
+    index_orig  coords_0  coords_1  orig_index           c1           c2         c3
+0          98         0        98        98.0 -2698.794299  2027.433921  67.092548
+1          99         0        99         NaN          NaN          NaN        NaN 
+
+components: ['c1', 'c2', 'c3'], next categorize
+gerar img_comp_dic para cada component
+type img_comp_dic:dask.array<values, shape=(nan, 100), dtype=float64, chunksize=(nan, 100), chunktype=numpy.ndarray>
+time to gen img_pca: 0.07191705703735352
+saving img_pca to /Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/parquet_npart111514/S2-16D_V2_012014_img_pca_npart111514_c1
+time to save img pca c1 to parquet file: 0.0766448974609375s, 0.0012774149576822917 m
+saving img_pca to /Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/parquet_npart111514/S2-16D_V2_012014_img_pca_npart111514_c2
+time to save img pca c2 to parquet file: 0.0803530216217041s, 0.0013392170270284016 m
+saving img_pca to /Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/parquet_npart111514/S2-16D_V2_012014_img_pca_npart111514_c3
+time to save img pca c3 to parquet file: 0.08382105827331543s, 0.0013970176378885904 m
+pca_components_df_merge.tail(2):
+    index_orig  coords_0 coords_1  orig_index           c1           c2         c3
+0          98         0       98        98.0 -2698.794299  2027.433921  67.092548
+1          99         0       99         NaN          NaN          NaN        NaN
+(.venv_data_geobia) MacBook-Air-M2:Data_GEOBIA flaviaschneider$ python code/Test_PCA_img_full_save_df.py 
+len(band_tile_img_files): 12
+1.3113021850585938e-05
+['B08', 'B04', 'B02', 'EVI', 'B03', 'NDVI'] ['20220728', '20220829'] 2
+/Users/flaviaschneider/Documents/flavia/Data_GEOBIA
+read time parquet files 4.280594110488892 s 0.07134323517481486 m
+df_toPCA
+    orig_index  coords_0  coords_1  B08_20220728  B04_20220728  B02_20220728  EVI_20220728  B03_20220728  NDVI_20220728  B04_20220829  B02_20220829  EVI_20220829  B03_20220829  B08_20220829  NDVI_20220829
+0           0         0         0          3296           274           348          4802           430           3844          1557          2107          6905          2113          3296           3844
+1           1         0         1          3404           260           350          4817           455           3853          1544          2110          6995          2119          3404           3853
+           orig_index  coords_0  coords_1  B08_20220728  B04_20220728  B02_20220728  EVI_20220728  B03_20220728  NDVI_20220728  B04_20220829  B02_20220829  EVI_20220829  B03_20220829  B08_20220829  NDVI_20220829
+111513598   111513598     10559     10558          3085           411           333          4266           505           5879           889          1174          6371          1210          3085           5879
+111513599   111513599     10559     10559          2960           340           301          4491           458           5928           871          1135          6264          1231          2960           5928
+df_toPCA_coords
+             coords_0  coords_1
+index_orig                    
+111513598      10559     10558
+111513599      10559     10559
+df_toPCA_coords types
+ coords_0    int64
+coords_1    int64
+dtype: object
+len divisions df_to_PCA_coords: 111515, n_part: 111514
+tempo para fazer dropna: 0.005785226821899414
+read time pca parquet files 3.7381398677825928 s 0.06230233112970988 m
+pca_components_df read
+              c1          c2          c3
+997 -393.059592 -240.948451 -890.369761
+998 -352.522839 -366.387171 -754.721267
+len divisions pca_components_df2 initial: 111515, n_part: 111514
+time to copy orig_index in pca_components_df: 0.15207195281982422 s 0.0025345325469970704
+pca_components df after insert col index original from df_toPCA:
+             orig_index          c1          c2          c3
+index_orig                                                
+111513598    111513598 -393.059592 -240.948451 -890.369761
+111513599    111513599 -352.522839 -366.387171 -754.721267
+pca_components dypes before merge:
+ orig_index    float64
+c1            float64
+c2            float64
+c3            float64
+dtype: object
+Fazer repartition in pca_components_df
+
+time to repartition in pca_components_df: 2.8848648071289062e-05 s 4.80810801188151e-07
+deleted df_toPCA,pca_components_df2
+len divisions pca_components df: 111515
+time to gen df_pca: 0.5743067264556885
+ignoring exception in ensure_cleanup_on_exception
+Traceback (most recent call last):
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/shuffle.py", line 928, in ensure_cleanup_on_exception
+    yield
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/shuffle.py", line 943, in shuffle_group_3
+    p.append(d, fsync=True)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/encode.py", line 25, in append
+    self.partd.append(data, **kwargs)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/buffer.py", line 45, in append
+    self.flush(keys)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/buffer.py", line 99, in flush
+    self.slow.append(dict(zip(keys, self.fast.get(keys))))
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/file.py", line 44, in append
+    os.fsync(f)
+OSError: [Errno 28] No space left on device
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/shuffle.py", line 933, in ensure_cleanup_on_exception
+    p.drop()
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/encode.py", line 39, in drop
+    return self.partd.drop()
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/buffer.py", line 78, in drop
+    self.slow.drop()
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/file.py", line 93, in drop
+    shutil.rmtree(self.path)
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 718, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 675, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 673, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+FileNotFoundError: [Errno 2] No such file or directory: '15970'
+Traceback (most recent call last):
+  File "code/Test_PCA_img_full_save_df.py", line 349, in <module>
+    print ('\npca_components_df_merge.tail():\n',pca_components_df_merge.tail(),'\n') if sh_print_n2 else None
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/core.py", line 1443, in tail
+    result = result.compute()
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/base.py", line 314, in compute
+    (result,) = compute(self, traverse=False, **kwargs)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/base.py", line 599, in compute
+    results = schedule(dsk, keys, **kwargs)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/threaded.py", line 89, in get
+    results = get_async(
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/local.py", line 511, in get_async
+    raise_exception(exc, tb)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/local.py", line 319, in reraise
+    raise exc
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/local.py", line 224, in execute_task
+    result = _execute_task(task, data)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/core.py", line 119, in _execute_task
+    return func(*(_execute_task(a, cache) for a in args))
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/shuffle.py", line 943, in shuffle_group_3
+    p.append(d, fsync=True)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/encode.py", line 25, in append
+    self.partd.append(data, **kwargs)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/buffer.py", line 45, in append
+    self.flush(keys)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/buffer.py", line 99, in flush
+    self.slow.append(dict(zip(keys, self.fast.get(keys))))
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/file.py", line 44, in append
+    os.fsync(f)
+OSError: [Errno 28] No space left on device
+ignoring exception in ensure_cleanup_on_exception
+Traceback (most recent call last):
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/shuffle.py", line 928, in ensure_cleanup_on_exception
+    yield
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/shuffle.py", line 943, in shuffle_group_3
+    p.append(d, fsync=True)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/encode.py", line 25, in append
+    self.partd.append(data, **kwargs)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/buffer.py", line 45, in append
+    self.flush(keys)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/buffer.py", line 99, in flush
+    self.slow.append(dict(zip(keys, self.fast.get(keys))))
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/file.py", line 44, in append
+    os.fsync(f)
+OSError: [Errno 28] No space left on device
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/shuffle.py", line 933, in ensure_cleanup_on_exception
+    p.drop()
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/encode.py", line 39, in drop
+    return self.partd.drop()
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/buffer.py", line 78, in drop
+    self.slow.drop()
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/file.py", line 93, in drop
+    shutil.rmtree(self.path)
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 718, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 675, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 673, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+FileNotFoundError: [Errno 2] No such file or directory: '15970'
+ignoring exception in ensure_cleanup_on_exception
+Traceback (most recent call last):
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/shuffle.py", line 928, in ensure_cleanup_on_exception
+    yield
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/shuffle.py", line 943, in shuffle_group_3
+    p.append(d, fsync=True)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/encode.py", line 25, in append
+    self.partd.append(data, **kwargs)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/buffer.py", line 45, in append
+    self.flush(keys)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/buffer.py", line 99, in flush
+    self.slow.append(dict(zip(keys, self.fast.get(keys))))
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/file.py", line 44, in append
+    os.fsync(f)
+OSError: [Errno 28] No space left on device
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/shuffle.py", line 933, in ensure_cleanup_on_exception
+    p.drop()
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/encode.py", line 39, in drop
+    return self.partd.drop()
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/buffer.py", line 78, in drop
+    self.slow.drop()
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/file.py", line 93, in drop
+    shutil.rmtree(self.path)
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 718, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 675, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 673, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+FileNotFoundError: [Errno 2] No such file or directory: '15970'
+ignoring exception in ensure_cleanup_on_exception
+Traceback (most recent call last):
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/shuffle.py", line 928, in ensure_cleanup_on_exception
+    yield
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/shuffle.py", line 943, in shuffle_group_3
+    p.append(d, fsync=True)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/encode.py", line 25, in append
+    self.partd.append(data, **kwargs)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/buffer.py", line 45, in append
+    self.flush(keys)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/buffer.py", line 99, in flush
+    self.slow.append(dict(zip(keys, self.fast.get(keys))))
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/file.py", line 44, in append
+    os.fsync(f)
+OSError: [Errno 28] No space left on device
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/shuffle.py", line 933, in ensure_cleanup_on_exception
+    p.drop()
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/encode.py", line 39, in drop
+    return self.partd.drop()
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/buffer.py", line 78, in drop
+    self.slow.drop()
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/file.py", line 93, in drop
+    shutil.rmtree(self.path)
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 718, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 675, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 673, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+FileNotFoundError: [Errno 2] No such file or directory: '15970'
+ignoring exception in ensure_cleanup_on_exception
+Traceback (most recent call last):
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/shuffle.py", line 928, in ensure_cleanup_on_exception
+    yield
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/shuffle.py", line 943, in shuffle_group_3
+    p.append(d, fsync=True)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/encode.py", line 25, in append
+    self.partd.append(data, **kwargs)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/buffer.py", line 45, in append
+    self.flush(keys)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/buffer.py", line 99, in flush
+    self.slow.append(dict(zip(keys, self.fast.get(keys))))
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/file.py", line 44, in append
+    os.fsync(f)
+OSError: [Errno 28] No space left on device
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/shuffle.py", line 933, in ensure_cleanup_on_exception
+    p.drop()
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/encode.py", line 39, in drop
+    return self.partd.drop()
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/buffer.py", line 78, in drop
+    self.slow.drop()
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/file.py", line 93, in drop
+    shutil.rmtree(self.path)
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 718, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 675, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 673, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+FileNotFoundError: [Errno 2] No such file or directory: '15970'
+ignoring exception in ensure_cleanup_on_exception
+Traceback (most recent call last):
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/shuffle.py", line 928, in ensure_cleanup_on_exception
+    yield
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/shuffle.py", line 943, in shuffle_group_3
+    p.append(d, fsync=True)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/encode.py", line 25, in append
+    self.partd.append(data, **kwargs)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/buffer.py", line 45, in append
+    self.flush(keys)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/buffer.py", line 99, in flush
+    self.slow.append(dict(zip(keys, self.fast.get(keys))))
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/file.py", line 44, in append
+    os.fsync(f)
+OSError: [Errno 28] No space left on device
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/shuffle.py", line 933, in ensure_cleanup_on_exception
+    p.drop()
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/encode.py", line 39, in drop
+    return self.partd.drop()
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/buffer.py", line 78, in drop
+    self.slow.drop()
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/file.py", line 93, in drop
+    shutil.rmtree(self.path)
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 718, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 675, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 673, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+FileNotFoundError: [Errno 2] No such file or directory: '15970'
+ignoring exception in ensure_cleanup_on_exception
+Traceback (most recent call last):
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/shuffle.py", line 928, in ensure_cleanup_on_exception
+    yield
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/shuffle.py", line 943, in shuffle_group_3
+    p.append(d, fsync=True)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/encode.py", line 25, in append
+    self.partd.append(data, **kwargs)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/buffer.py", line 45, in append
+    self.flush(keys)
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/buffer.py", line 99, in flush
+    self.slow.append(dict(zip(keys, self.fast.get(keys))))
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/file.py", line 44, in append
+    os.fsync(f)
+OSError: [Errno 28] No space left on device
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/dask/dataframe/shuffle.py", line 933, in ensure_cleanup_on_exception
+    p.drop()
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/encode.py", line 39, in drop
+    return self.partd.drop()
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/buffer.py", line 78, in drop
+    self.slow.drop()
+  File "/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia/lib/python3.8/site-packages/partd/file.py", line 93, in drop
+    shutil.rmtree(self.path)
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 718, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 675, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 673, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+FileNotFoundError: [Errno 2] No such file or directory: '15970'
+Error in atexit._run_exitfuncs:
+Traceback (most recent call last):
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 718, in rmtree
+    _rmtree_safe_fd(fd, path, onerror)
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 675, in _rmtree_safe_fd
+    onerror(os.unlink, fullname, sys.exc_info())
+  File "/Users/flaviaschneider/.pyenv/versions/3.8.13/lib/python3.8/shutil.py", line 673, in _rmtree_safe_fd
+    os.unlink(entry.name, dir_fd=topfd)
+FileNotFoundError: [Errno 2] No such file or directory: '90563'
+(.venv_data_geobia) MacBook-Air-M2:Data_GEOBIA flaviaschneider$ 
+(.venv_data_geobia) MacBook-Air-M2:Data_GEOBIA flaviaschneider$ python memory-sharding.py 
+python: can't open file 'memory-sharding.py': [Errno 2] No such file or directory
+(.venv_data_geobia) MacBook-Air-M2:Data_GEOBIA flaviaschneider$ pip install Pympler
+Collecting Pympler
+  Downloading Pympler-1.0.1-py3-none-any.whl.metadata (3.4 kB)
+Downloading Pympler-1.0.1-py3-none-any.whl (164 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 164.8/164.8 kB 1.8 MB/s eta 0:00:00
+Installing collected packages: Pympler
+Successfully installed Pympler-1.0.1
+
+[notice] A new release of pip is available: 24.0 -> 24.1.1
+[notice] To update, run: pip install --upgrade pip
+(.venv_data_geobia) MacBook-Air-M2:Data_GEOBIA flaviaschneider$ python
+Python 3.8.13 (default, Jul 27 2022, 16:38:12) 
+[Clang 13.1.6 (clang-1316.0.21.2.5)] on darwin
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import dask
+print(dask.config.get('temporary-directory'))>>> print(dask.config.get('temporary-directory'))
+None
+>>> quit()
+(.venv_data_geobia) MacBook-Air-M2:Data_GEOBIA flaviaschneider$ echo $MALLOC_MMAP_THRESHOLD_
+
+(.venv_data_geobia) MacBook-Air-M2:Data_GEOBIA flaviaschneider$ 
