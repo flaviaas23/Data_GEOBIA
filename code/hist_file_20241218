@@ -1,0 +1,276 @@
+  332  python code/spk_gen_dfToPCA.py
+  335  python
+  336  python
+  337  python
+  345  python
+  346  python
+  354  python
+  356  python
+  357  python
+  358  python
+  362  python spk_gen_df_ToPCA_nb_term.py 
+  365  python spk_gen_df_ToPCA_nb_term.py 
+  367  python spk_gen_df_ToPCA_nb_term.py 
+  373  python
+  374  ls /Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia_arm/lib/python3.9/site-packages/pyspark
+  375  ls /Users/flaviaschneider/Documents/flavia/Data_GEOBIA/.venv_data_geobia_arm/lib/python3.9/site-packages/pyspark/python/lib/
+  376  python
+  378  python spk_gen_df_ToPCA_nb_term.py 
+  379  python
+  380  python spk_gen_df_ToPCA_nb_term.py 
+  381  python spk_gen_df_ToPCA_nb_term.py 
+  382  python spk_gen_df_ToPCA_nb_term.py 
+  385  python spk_gen_df_ToPCA_nb_term.py 
+  388  python spk_gen_df_ToPCA_nb_term_save_sdft.py 
+  392  python spk_gen_df_ToPCA_nb_term_save_sdft.py 
+  393  python spk_gen_df_ToPCA_nb_term_save_sdft.py 
+  397  python spk_gen_df_ToPCA_nb_term_save_sdft.py 
+  398  python
+  399  python
+  403  python spk_gen_df_ToPCA_nb_term_save_sdft.py 
+  404  python spk_gen_df_ToPCA_nb_term_save_sdft.py 
+  405  python spk_gen_df_ToPCA_nb_term_save_sdft.py 
+  407  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  408  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  409  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  410  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  411  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  412  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  413  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  414  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  415  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  416  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  417  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  418  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  419  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  420  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  421  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  422  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  423  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  424  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  425  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  426  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  432  python spk_gen_df_ToPCA_nb_term_save_sdft.py 
+  436  python spk_gen_df_ToPCA_nb_term_save_sdft.py 
+  440  python spk_gen_df_ToPCA_nb_term_from_sdft.py 
+  444  python spk_gen_df_ToPCA_nb_term_from_sdft.py 
+  448  python spk_gen_df_ToPCA_nb_term_from_sdft.py 
+  452  python
+  457  python
+  463  python spk_gen_pca.py 
+  464  python spk_gen_pca.py 
+  465  python spk_gen_pca.py 
+  466  python spk_gen_pca.py 
+  467  python spk_gen_pca.py 
+  468  python spk_gen_pca.py 
+  472  python spk_gen_pca.py 
+  473  python spk_gen_pca.py 
+  477  python spk_gen_pca.py 
+  481  python spk_gen_pca.py 
+  484  python spk_gen_pca.py 
+  485  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  486  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  487  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  488  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  489  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  490  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  491  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  492  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  493  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  494  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  495  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  496  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  497  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  498  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  499  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  500  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  508  python spk_gen_pca.py 
+  512  python spk_gen_pca.py 
+  513  python spk_gen_pca.py 
+  517  python spk_gen_df_ToPCA_nb_term_from_sdft.py 
+  520  python spk_gen_pca.py 
+  523  python spk_gen_pca.py 
+  526  python spk_gen_pca.py 
+  529  python spk_gen_pca.py 
+  532  python spk_gen_pca.py 
+  535  python spk_gen_pca.py 
+  538  python spk_gen_pca.py 
+  541  python spk_gen_pca.py 
+  542  python spk_gen_pca.py 
+  545  python spk_gen_pca.py 
+  546  python
+  547  python spk_gen_imgPCA.py 
+  548  python spk_gen_imgPCA.py 
+  549  python spk_gen_imgPCA.py 
+  550  python spk_gen_imgPCA.py 
+  551  python spk_gen_imgPCA.py 
+  552  python spk_gen_imgPCA_segmentation.py 
+  553  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  558  python spk_gen_imgPCA_segmentation.py 
+  559  python
+  560  python spk_gen_imgPCA_segmentation.py 
+  561  python
+  562  python spk_gen_imgPCA_segmentation_porquadrante.py
+  563  python spk_gen_imgPCA_segmentation_porquadrante.py
+  564  python spk_gen_imgPCA_segmentation_porquadrante.py
+  565  python spk_gen_imgPCA_segmentation_porquadrante.py
+  566  python spk_gen_imgPCA_segmentation_porquadrante.py
+  567  python
+  568  python
+  569  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  570  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.14.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  571  /Users/flaviaschneider/.pyenv/versions/3.7.2/bin/python /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.16.1-darwin-arm64/python_files/printEnvVariablesToFile.py /Users/flaviaschneider/.vscode/extensions/ms-python.python-2024.16.1-darwin-arm64/python_files/deactivate/bash/envVars.txt
+  576  python --version
+  577  python spk_gen_1cluster_snic_pca.py 
+  578  python spk_gen_1cluster_snic_pca.py 
+  581  python spk_gen_1cluster_snic_pca.py 
+  582  python spk_gen_2cluster_snic_pca.py 
+  583  python spk_gen_2cluster_snic_pca.py 
+  584  python spk_gen_2cluster_snic_pca.py 
+  585  python spk_gen_2_1cluster_snic_pca.py 
+  586  python
+  587  python spk_gen_2_1cluster_snic_pca.py 
+  588  python spk_gen_2_1cluster_snic_pca.py 
+  589  python spk_gen_2_1cluster_snic_pca.py 
+  590  python spk_gen_2_1cluster_snic_pca.py 
+  591  python spk_gen_2_1cluster_snic_pca.py 
+  592  python spk_gen_2_1cluster_snic_pca.py 
+  596  python spk_gen_2_1cluster_snic_pca.py 
+  598  python spk_gen_2_1cluster_snic_pca.py 
+  599  python spk_gen_2_1cluster_snic_pca.py 
+  600  python spk_gen_2_1cluster_snic_pca.py 
+  601  python spk_gen_2_1cluster_snic_pca.py 
+  602  python spk_gen_2_1cluster_snic_pca.py 
+  603  python
+  607  python spk_gen_2_1cluster_snic_pca.py 
+  610  python spk_gen_2_1cluster_snic_pca.py 
+  611  python spk_gen_2_1cluster_snic_pca.py 
+  612  python spk_gen_2_1cluster_snic_pca.py 
+  613  python
+  614  python spk_gen_1cluster_snic_pca.py 
+  615  python spk_gen_1cluster_snic_pca.py 
+  616  python spk_gen_1cluster_snic_pca.py 
+  617  python spk_gen_1cluster_snic_pca.py 
+  618  python spk_gen_1cluster_snic_pca.py 
+  619  python spk_gen_2cluster_snic_pca.py 
+  620  python spk_gen_2cluster_snic_pca.py 
+  621  python spk_gen_2_1cluster_snic_pca.py 
+  622  python spk_gen_2_1cluster_snic_pca.py 
+  623  python spk_gen_2_1cluster_snic_pca.py 
+  625  python spk_gen_2_1cluster_snic_pca.py 
+  626  python
+  627  python
+  628  python
+  631  python
+  632  python
+  639  python
+  640  python
+  642  python
+  643  python
+  646  python
+  654  python
+  655  python
+  657  python
+  660  python
+  661  python
+  666  python
+  669  python
+  672  python
+  673  python
+  676  python
+  679  python
+  680  python
+  683  python
+  686  python
+  687  python
+  689  python
+  691  python spk_gen_df_ToPCA_nb_term_save_sdft.py -td 'data/Cassio/S2-16D_V2_012014_20220728_/' -ld 'code/logs/' -i 'S2-16D_V2_012014' -sp True
+  694  python spk_gen_df_ToPCA_nb_term_save_sdft.py -td 'data/Cassio/S2-16D_V2_012014_20220728_/' -ld 'code/logs/' -i 'S2-16D_V2_012014' -sp True
+  699  python spk_gen_df_ToPCA_nb_term_save_sdft.py -td 'data/Cassio/S2-16D_V2_012014_20220728_/' -ld 'code/logs/' -i 'S2-16D_V2_012014' -sp True
+  700  python spk_gen_df_ToPCA_nb_term_save_sdft.py -td 'data/Cassio/S2-16D_V2_012014_20220728_/' -ld 'code/logs/' -i 'S2-16D_V2_012014' -sp True
+  701  python spk_gen_df_ToPCA_nb_term_save_sdft.py -td 'data/Cassio/S2-16D_V2_012014_20220728_/' -ld 'code/logs/' -i 'S2-16D_V2_012014' -sp True
+  706  python spk_gen_df_ToPCA_nb_term_save_sdft.py -td 'data/Cassio/S2-16D_V2_012014_20220728_/' -ld 'code/logs/' -i 'S2-16D_V2_012014' -sp True
+  707  python spk_gen_df_ToPCA_nb_term_save_sdft.py -td 'data/Cassio/S2-16D_V2_012014_20220728_/' -ld 'code/logs/' -i 'S2-16D_V2_012014' -sp True
+  708  python spk_gen_df_ToPCA_nb_term_save_sdft.py -td 'data/Cassio/S2-16D_V2_012014_20220728_/' -ld 'code/logs/' -i 'S2-16D_V2_012014' -sp True
+  709  python spk_gen_df_ToPCA_nb_term_save_sdft.py -td 'data/Cassio/S2-16D_V2_012014_20220728_/' -ld 'code/logs/' -i 'S2-16D_V2_012014' -sp True
+  710  python spk_gen_df_ToPCA_nb_term_save_sdft.py -td 'data/Cassio/S2-16D_V2_012014_20220728_/' -ld 'code/logs/' -i 'S2-16D_V2_012014' -sp True
+  711  python
+  712  python
+  717  python
+  718  python
+  724  python
+  726  python spk_gen_df_ToPCA_nb_term_save_sdft.py 
+  731  python spk_gen_df_ToPCA_nb_term_save_sdft.py 
+  732  python spk_gen_df_ToPCA_nb_term_save_sdft.py 
+  733  python spk_gen_df_ToPCA_nb_term_save_sdft.py 
+  734  python spk_gen_df_ToPCA_nb_term_save_sdft.py 
+  735  python spk_gen_df_ToPCA_nb_term_save_sdft.py 
+  736  python spk_gen_df_ToPCA_nb_term_save_sdft.py 
+  737  python spk_gen_df_ToPCA_nb_term_save_sdft.py 
+  738  python spk_gen_df_ToPCA_nb_term_save_sdft.py 
+  739  python spk_gen_df_ToPCA_nb_term_save_sdft.py 
+  740  python spk_gen_df_ToPCA_nb_term_save_sdft.py 
+  741  python spk_gen_df_ToPCA_nb_term_save_sdft.py 
+  742  python spk_gen_df_ToPCA_nb_term_from_sdft.py 
+  743  python spk_gen_df_ToPCA_nb_term_from_sdft.py 
+  744  python spk_gen_df_ToPCA_nb_term_from_sdft.py 
+  745  python spk_gen_df_ToPCA_nb_term_from_sdft.py 
+  746  python spk_gen_pca.py
+  747  python spk_gen_pca.py
+  748  python spk_gen_imgPCA.py
+  749  python spk_gen_imgPCA.py
+  750  python spk_gen_imgPCA.py
+  751  python spk_gen_imgPCA_segmentation.py 
+  752  python spk_gen_imgPCA_segmentation.py 
+  754  python spk_gen_imgPCA_segmentation.py 
+  755  python spk_gen_imgPCA_segmentation.py 
+  760  python spk_gen_1cluster_snic_pca.py
+  761  python spk_gen_1cluster_snic_pca.py
+  762  python spk_gen_1cluster_snic_pca.py
+  763  python spk_gen_1cluster_snic_pca.py
+  764  python spk_gen_1cluster_snic_pca.py
+  765  python spk_gen_1cluster_snic_pca.py
+  766  python spk_gen_1cluster_snic_pca.py
+  767  python spk_gen_1cluster_snic_pca.py
+  768  python spk_gen_1cluster_snic_pca.py
+  771  python spk_gen_1cluster_snic_pca.py
+  772  python spk_gen_1cluster_snic_pca.py
+  773  python spk_gen_2cluster_snic_pca.py 
+  774  python spk_gen_2cluster_snic_pca.py 
+  775  python spk_gen_2cluster_snic_pca.py 
+  776  python spk_gen_2cluster_snic_pca.py 
+  777  python spk_gen_2cluster_snic_pca.py 
+  778  python spk_gen_2cluster_snic_pca.py 
+  779  python
+  780  python spk_gen_2cluster_snic_pca.py 
+  781  python spk_gen_2cluster_snic_pca.py 
+  782  python spk_gen_2cluster_snic_pca.py 
+  783  python spk_gen_2cluster_snic_pca.py 
+  784  python
+  785  python spk_gen_2cluster_snic_pca.py 
+  786  python spk_gen_2cluster_snic_pca.py 
+  787  python spk_gen_2cluster_snic_pca.py 
+  789* python spk_gen_2cluster_snic
+  790  python spk_gen_2_1cluster_snic_pca.py 
+  791  python spk_gen_2_1cluster_snic_pca.py 
+  792  python spk_gen_2_1cluster_snic_pca.py 
+  793  python spk_gen_2_1cluster_snic_pca.py 
+  794  python spk_gen_2_1cluster_snic_pca.py 
+  795  python spk_gen_2_1cluster_snic_pca.py 
+  796  python spk_gen_2_1cluster_snic_pca.py 
+  797  python spk_gen_2_1cluster_snic_pca.py 
+  798  python spk_gen_2_1cluster_snic_pca.py 
+  799  python spk_gen_2_1cluster_snic_pca.py 
+  800  python spk_gen_2_1cluster_snic_pca.py 
+  801  python spk_gen_2_1cluster_snic_pca.py 
+  802  python spk_gen_2_1cluster_snic_pca.py 
+  803  python spk_gen_2_1cluster_snic_pca.py 
+  804  python spk_gen_2_2cluster_snic_pca.py 
+  805  python spk_gen_2_2cluster_snic_pca.py 
+  806  python spk_gen_2_2cluster_snic_pca.py 
+  807  python spk_gen_2_2cluster_snic_pca.py 
+  808  python spk_gen_2_2cluster_snic_pca.py 
+  809  python spk_gen_2_2cluster_snic_pca.py 
+  810  python spk_gen_2_2cluster_snic_pca.py 
+  811  python spk_gen_2_2cluster_snic_pca.py 
+  829  history |grep python >hist_file_20241218

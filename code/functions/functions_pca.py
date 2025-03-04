@@ -1,6 +1,8 @@
 #copied at 17/06/2024
 #From: notebooks/Test_PCA_img_full_working-Copy1.ipynb
-
+#atualizado: 20/08/2024
+# 20241001: no directorio functions
+import gc
 import numpy as np
 from math import ceil
 
@@ -12,7 +14,8 @@ from skimage.segmentation import slic
 from skimage.segmentation import mark_boundaries
 from skimage.util import img_as_float
 
-import imageio.v2 as imageio
+# import imageio.v2 as imageio
+import imageio.v3 as imageio
 from skimage.measure import regionprops, regionprops_table
 import pandas as pd
 import psutil
@@ -26,10 +29,38 @@ from itertools import product
 import pickle
 import random
 from tqdm import tqdm
+import logging
 
 # import dask.array as da
 # import dask.dataframe as dd 
 # from dask_ml.decomposition import PCA
+
+### 20241023: Function to update df with processes time
+def update_procTime_file(proc_dic, time_file):
+    "function to update df the processes time "
+    
+    df = pd.DataFrame.from_dict(proc_dic, orient='index')
+    try:
+        df_up = pd.read_pickle(time_file)
+        df_up = pd.concat([df_up,df], ignore_index=True)
+    except FileNotFoundError:
+        # Se o arquivo não existir, apenas use o DataFrame novo
+        df_up = df
+
+    # 3. Salvar o DataFrame combinado no arquivo pickle
+    df_up.to_pickle(time_file)
+
+### Function to log info
+def cria_logger(log_dir,nome_log):
+    "function to create a logger"
+    logger = logging.getLogger("meu_logger")
+    logger.setLevel(logging.INFO)
+
+    file_handler = logging.FileHandler(log_dir+nome_log, mode='a')
+    file_handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(message)s'))
+    
+    logger.addHandler(file_handler)
+    return logger
 
 ### Functions to read and save
 
@@ -150,6 +181,29 @@ def get_bandsDates(band_img_files, tile=0):
     print (time2-time1)
     return bands, dates
 
+#20250120: get dats from directories name
+def get_Dates(dir_file_name, pos_date=-1):
+    '''
+    #From spark sdft directoris names return dates 
+    pos_date is date position in name after split '_'
+    '''    
+    dates=[]
+    bands = []
+    time1=time.time()
+    pos = pos_date
+    for f in dir_file_name:
+        f_name = f.split('_')  
+        b = f_name[pos].split('.')
+        if b[0] not in bands:
+            bands.append(b[0])
+        f_name = f_name[pos_date].split('.')
+        if f_name[pos] not in dates:
+            dates.append(f_name[pos])
+    dates = sorted(dates)
+    time2 = time.time()
+    print (time2-time1)
+    return dates
+
 ##### Functions get_dates_lower
 def get_dates_lower(dates, lower=True):
     ''''
@@ -172,6 +226,39 @@ def get_dates_lower(dates, lower=True):
     return dates
 
 #### Functions calc_avg_array
+def calc_avg_array(arr, img_dic, c, med='med', pca=0 ):
+    # Map array elements to dictionary values if they are not nan (-9999, -32768)
+    #pixel_values_map = [pixel_band_value[elem[0], elem[1]] for elem in arr]
+    #pixel_values_map = [img_dic[c][elem[0], elem[1]] for elem in arr if img_dic[c][elem[0], elem[1]]]
+    #da_img_dic= da.from_array(np.array(img_dic),chunks=img_dic.shape) 
+    #pixel_values_map = [img_dic[elem[0], elem[1]] for elem in arr if img_dic[elem[0], elem[1]]]
+    # precisa testar se esta ok qdo chmada para a imagem com as bandas, esta ok para img pca
+    if not pca:
+        #pixel_values_map = [image_band_dic[b][elem[0], elem[1]] for elem in arr if image_band_dic[b][elem[0], elem[1]] not in [-9999, -32768]]
+        pixel_values_map = [img_dic[c][elem[0], elem[1]] for elem in arr if img_dic[c][elem[0], elem[1]] not in [-9999, -32768]]
+
+    else:
+        #pixel_values_map = [img_dic[c][elem[0], elem[1]] for elem in arr if img_dic[c][elem[0], elem[1]]]
+        pixel_values_map = [img_dic[elem[0], elem[1]] for elem in arr if not np.isnan(img_dic[elem[0], elem[1]])]
+    
+    #print (f'{b}\nmapped array: {pixel_values_map}')
+    # Calculate median deviation of mapped values
+    #median or mean: average
+    if med == 'med':
+        arr_calc = np.median(pixel_values_map) if len(pixel_values_map) else np.nan
+    elif med == 'avg':    
+        arr_calc = np.mean(pixel_values_map) if len(pixel_values_map) else np.nan
+    elif med == 'std':
+        arr_calc = np.std(pixel_values_map) if len(pixel_values_map) else np.nan        
+    else:
+        arr_calc = pixel_values_map[0]#np.mean(pixel_values_map) if pixel_values_map else np.nan
+    return arr_calc
+
+    # arr_avg = np.median(pixel_values_map) if pixel_values_map else np.nan
+    # return arr_avg
+
+''' 
+#20240823: substitui funcao abaixo pela acima
 def calc_avg_array(arr, c, img_dic, med='med', pca=0):
     # Map array elements to dictionary values if they are not nan (-9999, -32768)
     #pixel_values_map = [pixel_band_value[elem[0], elem[1]] for elem in arr]
@@ -190,6 +277,7 @@ def calc_avg_array(arr, c, img_dic, med='med', pca=0):
     return arr_avg
     #return np.median(pixel_values_map)#/max_b
     #np.std(pixel_values_map), np.mean(pixel_values_map), \
+'''
 
 def calc_avg_array_pca(arr,img_dic, c, med='med' ):
     # Map array elements to dictionary values if they are not nan (-9999, -32768)
@@ -218,10 +306,11 @@ def calc_avg_array_pca(arr,img_dic, c, med='med' ):
 
 ##### function to verify the percentage of nans in a band image dictionary
 
-def check_perc_nan(image_band_dic):
+def check_perc_nan(image_band_dic, logger='', sh_print=0):
     ''''
     function to verify nan image percentage 
     '''
+    logger.info(f'Function check_perc_nan begin') if logger else  None
     count_day_nan=0
     num_bands = list(image_band_dic.keys())
     num_elemts = image_band_dic[num_bands[0]].size
@@ -231,11 +320,15 @@ def check_perc_nan(image_band_dic):
         count_day_nan+= np.count_nonzero(image_band_dic[b] == -32768)
         # label_neg = set()
         # label_neg_indx=set()
-        print (f'{b} count_day_nan = {count_day_nan}')
+        print (f'{b} count_day_nan = {count_day_nan}') if sh_print else None
+        logger.info(f'{b} count_day_nan = {count_day_nan}')
         #min_b[b] = np.min(image_band_dic[b], where=~np.isnan(b), initial=10)
         #image_band_dic_norm[b]=image_band_dic[b].astype(float)/max_b
     print (f'count_day_nan = {count_day_nan}')
+    logger.info(f'count_day_nan = {count_day_nan}') if logger else None
     perc_day_nan = (count_day_nan/(num_elemts*len(num_bands)))*100
+    logger.info(f'Function check_perc_nan end') if logger else  None
+
     return perc_day_nan
 
 #### Function do generate a dataframe of the all pixels image bands in a specific date<br>
@@ -277,39 +370,105 @@ def gen_df_from_img_band(matrix, bands_name, ar_pos=1, sh_print=0):
     if sh_print: 
         print (t2-t1)     
     return dft
-#%%
-def gen_sdf_from_img_band(matrix, bands_name, ar_pos=1, sp=0, sh_print=0):
+
+def gen_sdf_from_img_band(matrix, bands_name, ar_pos=1, sp=0, sh_print=0, logger=''):
     '''
     gen df from img bands matrix
     returns df in format coords|b1|b2|...|bn
     ar_pos = 1 if coords in format [x,y] should be in a column of dft
     '''
+    logger.info(f'Function gen_sdf_from_img_band begin') if logger else  None
+    ps.options.compute.ops_on_diff_frames = True
+
     t1=time.time()
     # Get the shape of the matrix
     num_rows, num_cols, cols_df = matrix.shape
     print (f'matrix rows={num_rows}, cols={num_cols}, bands={cols_df}') if sh_print else None
+    logger.info(f'matrix rows={num_rows}, cols={num_cols}, bands={cols_df}') if logger else None
     # Create a list of index positions [i, j]
     #positions = [[i, j] for i in range(num_rows) for j in range(num_cols)] 
-    pos_0=np.repeat(np.arange(matrix.shape[0]), matrix.shape[1])
-    pos_1=np.tile(np.arange(matrix.shape[1]), matrix.shape[0])
+    t1=time.time()
+    pos_0 = np.repeat(np.arange(matrix.shape[0]), matrix.shape[1])
+    pos_1 = np.tile(np.arange(matrix.shape[1]), matrix.shape[0])
+    t2=time.time()
+    
+    logger.info(f'Tempo para gerar 2 listas com as coordenadas {t2-t1:.2f}') if logger else None
+    logger.info(f'pos_0 dtype {pos_0.dtype} , type pos_0 0 {type(pos_0[0])}')
+    
+    #chage the type for int16
+    t1=time.time()
+    pos_0 = pos_0.astype(np.int16)
+    pos_1 = pos_1.astype(np.int16)
+    t2=time.time()
+    
+    logger.info(f'Tempo para mudar tipo para int16 {type(pos_0[0])} {t1-t1:.2f}')
     
     # Flatten the matrix values and reshape into a 2D array
+    t1=time.time()
     values = matrix.reshape(-1, cols_df)
+    t2=time.time()
+    logger.info(f'Tempo para fazer o flatten da matriz {t2-t1:.2f}') if logger else None
+    del matrix 
+    gc.collect()
+    logger.info(f'types matrix {values.dtype} and elements {type(values[0,0])}')
     
     # Create a DataFrame from the index positions and values
     #dft = pd.DataFrame(values, columns=bands_name)#, index=positions)
+    t1=time.time()
     sdft = ps.DataFrame(values, columns=bands_name)
-    
+    t2=time.time()
+    info = f'Tempo para fazer o sdft {t2-t1:.2f}s, {(t2-t1)/60:.2f}m'
+    logger.info(info)
+    del values
+    gc.collect()
     # Reset the index to create separate columns for 'i' and 'j'
     # dft.reset_index(inplace=True)
     # dft.rename(columns={'index': 'position'}, inplace=True)
     # df['position'] = [f"[{i},{j}]" for i, j in positions]
     #mais rapido abaixo
     #pyspark pandas dataframe doesn't support ndarray
-    pos_0 = pos_0.tolist()
-    pos_1 = pos_1.tolist()
+    t1=time.time()
+    # pos_0 = pos_0.tolist()
+    # # pos_1 = pos_1.tolist()
+    # t2=time.time()
+    # info = f'Tempo para gerar lista da coords_0 {t2-t1:.2f}'
+    # logger.info(info)
+    # t3=time.time()
+
+    pos_0 = ps.Series(pos_0)
     sdft.insert(0,'coords_0', pos_0)
+    
+    #sdft['coords_0'] = pos_0
+    t3_1=time.time()
+    info = f'Tempo para inserir coords_0 {t3_1-t1:.2f}s, {(t3_1-t1)/60:.2f}m'
+    logger.info(info)
+    del pos_0
+    gc.collect()
+
+    sdft = sdft.sort_index()
+    t3_2 = time.time()
+    info = f'Tempo para sort coords_0  {t3_2-t3_1:.2f}'
+    logger.info(info)
+    
+    pos_1 = ps.Series(pos_1)
+    # pos_1 = pos_1.tolist()
     sdft.insert(1,'coords_1', pos_1)
+    # sdft['coords_1'] = pos_1
+    t3_3= time.time()
+    del pos_1
+    gc.collect()
+    info = f'Tempo para inserir coords_1 {t3_3-t3_2:.2f}s, {(t3_3-t3_2)/60:.2f}m'
+    logger.info(info)
+
+    t3_4= time.time()
+    sdft = sdft.sort_index()
+    info = f'Tempo parafazer sort das coords_1 {t3_4-t3_3:.2f}'
+    logger.info(info)
+
+    t4=time.time()
+    info = f'Tempo para gerar inserir e fazer sort das coordenadas {t4-t1:.2f}s, {(t4-t1)/60:.2f}m'
+    logger.info(info)
+
     if ar_pos:
         # Create a list of index positions [i, j]
         positions = [[i, j] for i in range(num_rows) for j in range(num_cols)] 
@@ -323,16 +482,175 @@ def gen_sdf_from_img_band(matrix, bands_name, ar_pos=1, sp=0, sh_print=0):
     if sp == 2:
         #cria pelo dataframe spark o spark dataframe 
         sp_sdft = sdft.to_spark()
-        #cria pelo
-
         t2=time.time()
-        print (f'Time to gen sdft: {t2-t1}')
+        print (f'Time to gen sdft: {t2-t1:.2f}')
+        logger.info(f'Time to gen sdft: {t2-t1:.2f}')
+        del sdft
+        gc.collect()
         return sp_sdft
 
+    logger.info(f'Function gen_sdf_from_img_band END') if logger else  None
     
     return sdft
 
-#%%
+### Function gen_arr_from_img_band_wCoords
+# 20240912: created based on gen_sdf_from_img_band
+def gen_arr_from_img_band_wCoords(matrix, bands_name, ar_pos=0, sp=0, sh_print=0, logger=''):
+    
+    # gen arr from img bands matrix including values for coords of the matrtix/img
+    # to be transformed in a df or psdf
+    # returns df in format [[[coords_0,coords_1,b1,b2,...,bn
+    # ar_pos = 1 if coords in format [x,y] should be in a column of dft
+    
+    logger.info(f'Function gen_arr_from_img_band_wCoords begin') if logger else  None
+    ps.options.compute.ops_on_diff_frames = True
+
+    t1=time.time()
+    # Get the shape of the matrix
+    num_rows, num_cols, cols_df = matrix.shape
+    print (f'matrix rows={num_rows}, cols={num_cols}, bands={cols_df}') if sh_print else None
+    logger.info(f'matrix rows={num_rows}, cols={num_cols}, bands={cols_df}') if logger else None
+    # Create a list of index positions [i, j]
+    #positions = [[i, j] for i in range(num_rows) for j in range(num_cols)] 
+    t1=time.time()
+    shape_0 = matrix.shape[0]
+    shape_1 = matrix.shape[1]
+    pos_0 = np.repeat(np.arange(shape_0), shape_1).astype(np.int16)
+    pos_1 = np.tile(np.arange(shape_1), shape_0).astype(np.int16)
+    t2=time.time()
+    
+    logger.info(f'Tempo para gerar 2 listas com as coordenadas {t2-t1:.2f}') if logger else None
+    logger.info(f'pos_0 dtype {pos_0.dtype} , type pos_0 0 {type(pos_0[0])}') if logger else None
+    
+    # #chage the type for int16
+    # t1=time.time()
+    # pos_0 = pos_0.astype(np.int16)
+    # pos_1 = pos_1.astype(np.int16)
+    # t2=time.time()
+    # logger.info(f'Tempo para mudar tipo para int16 {type(pos_0[0])} {t2-t1:.2f}')
+
+    # Reshape pos_0 and pos_1 to match matrix's first two dimensions
+    m_shape = matrix.shape[:2]
+    pos_0 = pos_0.reshape(m_shape)
+    pos_1 = pos_1.reshape(matrix.shape[:2])
+
+    # Stack pos_0 and pos_1 along the last axis
+    # pos_combined = np.stack((pos_0_reshaped, pos_1_reshaped), axis=-1)
+    pos_combined = np.stack((pos_0, pos_1), axis=-1)
+    del pos_0, pos_1
+    gc.collect()
+
+    t1 = time.time()
+    # Concatenate pos_combined to the original matrix along the last axis
+    matrix = np.concatenate((pos_combined, matrix), axis=-1)
+    t2 = time.time()
+    logger.info(f'Tempo para concatenar coords com bands {t2-t1:.2f}s') if logger else None
+    del pos_combined
+    gc.collect()
+
+    # Flatten the matrix values and reshape into a 2D array   
+    num_rows, num_cols, cols_df = matrix.shape
+    logger.info(f'matrix shape: {num_rows, num_cols, cols_df}')  if logger else None
+    t1=time.time()
+    values = matrix.reshape(-1, cols_df)
+    t2=time.time()
+    logger.info(f'Tempo para fazer o flatten da matriz {t2-t1:.2f}') if logger else None
+    del matrix 
+    gc.collect()
+    logger.info(f'types values {values.dtype} and values elements {type(values[0,0])}') if logger else None
+    
+    return_array=1
+    if return_array:
+        logger.info(f'Returning values, Function gen_arr_from_img_band_wCoords END') if logger else  None
+        return values
+    else:
+        # Create a DataFrame from the index positions and values
+        #dft = pd.DataFrame(values, columns=bands_name)#, index=positions)
+        t1 = time.time()
+        sdft = ps.DataFrame(values, columns=['coords_0','coords_1']+bands_name)
+        t2 = time.time()
+        info = f'Tempo para fazer o sdft {t2-t1:.2f}s, {(t2-t1)/60:.2f}m'
+        logger.info(info) if logger else None
+        del values
+        gc.collect()
+        # Reset the index to create separate columns for 'i' and 'j'
+        # dft.reset_index(inplace=True)
+        # dft.rename(columns={'index': 'position'}, inplace=True)
+        # df['position'] = [f"[{i},{j}]" for i, j in positions]
+        #mais rapido abaixo
+        #pyspark pandas dataframe doesn't support ndarray
+        t1=time.time()
+        # pos_0 = pos_0.tolist()
+        # # pos_1 = pos_1.tolist()
+        # t2=time.time()
+        # info = f'Tempo para gerar lista da coords_0 {t2-t1:.2f}'
+        # logger.info(info)
+        # t3=time.time()
+
+        #como estou inserindo na matriz nao preciso mais fazer assim
+        insert_coords=0
+        if insert_coords:
+            pos_0 = ps.Series(pos_0)
+            sdft.insert(0,'coords_0', pos_0)
+            
+            #sdft['coords_0'] = pos_0
+            t3_1=time.time()
+            info = f'Tempo para inserir coords_0 {t3_1-t1:.2f}s, {(t3_1-t1)/60:.2f}m'
+            logger.info(info)  if logger else None
+            del pos_0
+            gc.collect()
+
+            sdft = sdft.sort_index()
+            t3_2 = time.time()
+            info = f'Tempo para sort coords_0  {t3_2-t3_1:.2f}'
+            logger.info(info)  if logger else None
+            
+            #como estou inserindo na matriz nao preciso mais fazer assim
+            pos_1 = ps.Series(pos_1)
+            # pos_1 = pos_1.tolist()
+            sdft.insert(1,'coords_1', pos_1)
+            # sdft['coords_1'] = pos_1
+            t3_3= time.time()
+            del pos_1
+            gc.collect()
+            info = f'Tempo para inserir coords_1 {t3_3-t3_2:.2f}s, {(t3_3-t3_2)/60:.2f}m'
+            logger.info(info)  if logger else None
+
+            t3_4= time.time()
+            sdft = sdft.sort_index()
+            info = f'Tempo parafazer sort das coords_1 {t3_4-t3_3:.2f}'
+            logger.info(info)  if logger else None
+
+            t4=time.time()
+            info = f'Tempo para gerar inserir e fazer sort das coordenadas {t4-t1:.2f}s, {(t4-t1)/60:.2f}m'
+            logger.info(info)  if logger else None
+    
+            t1=time.time()
+            if sp == 2:
+                #cria pelo dataframe spark o spark dataframe 
+                sp_sdft = sdft.to_spark()
+                t2=time.time()
+                print (f'Time to gen sdft: {t2-t1:.2f}')
+                logger.info(f'Time to gen sdft: {t2-t1:.2f}') if logger else None
+                del sdft
+                gc.collect()
+                return sp_sdft
+
+            logger.info(f'Function gen_sdf_from_img_band END') if logger else  None
+            
+            return sdft
+    t1=time.time()
+    if ar_pos:
+        # Create a list of index positions [i, j]
+        positions = [[i, j] for i in range(num_rows) for j in range(num_cols)] 
+        sdft.insert(2,'coords', positions)     
+    t2=time.time()
+    #0.003547191619873047
+    if sh_print: 
+        print (t2-t1)     
+    
+    
+
 ##### function gen_dfToPCA_filter, verifies if bands images nan percenteage 
 ##### is lower than perc
 def gen_dfToPCA_filter(dates, band_img_files, pos=-1, perc=15, ar_pos=1,dask=0, n_part=0, sh_print=0):
@@ -388,6 +706,7 @@ def gen_dfToPCA_filter(dates, band_img_files, pos=-1, perc=15, ar_pos=1,dask=0, 
         t2=time.time()
         #print (f'i= {i}, t= {t} t2-t1 ={t2-t1}')
         del dft
+        gc.collect()
     if dask == 1:
         print (df_toPCA.shape[0] , df_toPCA.shape[1])
         # n_part = round(df_toPCA.shape[0] * df_toPCA.shape[1]/1000)
@@ -402,14 +721,16 @@ def gen_dfToPCA_filter(dates, band_img_files, pos=-1, perc=15, ar_pos=1,dask=0, 
     #print (f'max of images bands {max_bt}') if print_time else None
     print (f'tempo para gerar df das matrizes de bandas das imagens: {t2-t1}') if sh_print else None
     return df_toPCA, max_bt, min_bt
-#%%
+
 ##### function gen_sdfToPCA_filter, verifies if bands images nan percenteage 
 ##### is lower than perc and genrates a spark dataframe
-def gen_sdfToPCA_filter(dates, band_img_files, pos=-1, perc=15, ar_pos=1,dask=0, n_part=0, sh_print=0):
+def gen_sdfToPCA_filter(dates, band_img_files, pos=-1, perc=15, ar_pos=0, dask=0, n_part=0, sh_print=0, logger=''):
     # gen sdf to PCA with original values from bands images files, 
     # including Nans(-9999, -32768), only images with nan percentage 
     # lower than perc will be considered 
     # dask =1 return dask df, dask=2 return spark df
+    logger.info(f'Function gen_sdfToPCA_filter BEGIN') if logger else  None
+    logger.info(f'Dates of image {dates}')
     max_bt = {}
     min_bt = {}
     for i,t in tqdm(enumerate(dates)):#['2022-07-16']:#dates_to_pca: ['2022-07-16','2022-08-17']
@@ -419,13 +740,20 @@ def gen_sdfToPCA_filter(dates, band_img_files, pos=-1, perc=15, ar_pos=1,dask=0,
         bands = image_band_dic.keys()
         print ( bands, band_img_file_to_load) if sh_print == 2 else None
         #check if nan percentage is lower than perc
-        
-        perc_day_nan= check_perc_nan(image_band_dic)
+        logger.info(f'Generating columns of image for {t}')
+        t1=time.time()
+        perc_day_nan= check_perc_nan(image_band_dic, logger)
+        t2=time.time()
+        logger.info(f'Tempo para verificar percentual de nan nos tiffs: {t2-t1:.2f}s, {(t2-t1)/60:.2f}m')
         if perc_day_nan > perc:
-            print (f'For {t} perc_day_nan= {perc_day_nan}') if sh_print else None
+            info= f'For {t} perc_day_nan= {perc_day_nan}'
+            print (info) if sh_print else None
+            logger.info(info) if logger else None
             continue
         
         #save the max of image
+        info = f'Verifies max and min for {t}'
+        logger.info(info)
         for b in bands:
             # Crie uma máscara para filtrar os valores Nan
             mask = (image_band_dic[b] != -9999) & (image_band_dic[b] != -32768)
@@ -442,23 +770,30 @@ def gen_sdfToPCA_filter(dates, band_img_files, pos=-1, perc=15, ar_pos=1,dask=0,
         cols_name = [x+'_'+t for x in bands]
         #gen df for images bands of the t day
         #dft = pd.DataFrame()
-        dft = gen_sdf_from_img_band(img_bands, cols_name, ar_pos=ar_pos, sh_print=0)
+        dft = gen_sdf_from_img_band(img_bands, cols_name, ar_pos=ar_pos, sh_print=0, logger=logger)
         del img_bands
+        gc.collect()
         #print (f'i= {i} {t}')
         t1=time.time()
         if i==0:
             #print (f'i= {i} {t}')
             dft.insert(0,'orig_index',dft.index)
             df_toPCA = dft#.copy()
+            del dft
+            gc.collect()
+            df_toPCA = df_toPCA.sort_values(by=['coords_0', 'coords_1'])
         else:
             #dft.drop(columns=['coords'], inplace=True)
             if ar_pos:
                 dft = dft.drop('coords', axis=1)
-            df_toPCA = pd.merge(df_toPCA, dft, on=['coords_0','coords_1'])#left_index=True, right_index=True)# on='coords')
+            df_toPCA = ps.merge(df_toPCA, dft, on=['coords_0','coords_1'])#left_index=True, right_index=True)# on='coords')
+            del dft
+            gc.collect()
+            df_toPCA = df_toPCA.sort_values(by=['coords_0', 'coords_1'])
             #df_toPCA = pd.concat([df_toPCA, dft], axis=1)            
         t2=time.time()
         #print (f'i= {i}, t= {t} t2-t1 ={t2-t1}')
-        del dft
+        
     if dask == 1: #gen dask df
         print (df_toPCA.shape[0] , df_toPCA.shape[1])
         # n_part = round(df_toPCA.shape[0] * df_toPCA.shape[1]/1000)
@@ -471,15 +806,20 @@ def gen_sdfToPCA_filter(dates, band_img_files, pos=-1, perc=15, ar_pos=1,dask=0,
         return dd_df_toPCA, max_bt, min_bt
     if dask == 2: #gen spark df
         t1=time.time()
-        sdf_toPCA = spark.createDataFrame(df_toPCA)
+        #sdf_toPCA = spark.createDataFrame(df_toPCA)
+        sdf_toPCA = df_toPCA.to_spark()
         t2=time.time()
-        print (f'Time to gen sdf_toPCA: {t2-t1}')
+        print (f'Time to gen sdf_toPCA: {t2-t1:.2f}')
         return sdf_toPCA, max_bt, min_bt
                 
     #print (f'max of images bands {max_bt}') if print_time else None
-    print (f'tempo para gerar df das matrizes de bandas das imagens: {t2-t1}') if sh_print else None
+    info = f'tempo para gerar df das matrizes de bandas das imagens: {t2-t1:.2f}'
+    print (info) if sh_print else None
+    logger.info(info)
+    logger.info(f'Function gen_sdfToPCA_filter END') if logger else  None
+    
     return df_toPCA, max_bt, min_bt
-#%%
+
 def gen_dfCoords(df_toPCA, sh_print=1):
     ''''
     function to gen df coords from df_TOPCA
@@ -584,7 +924,7 @@ U, s, Vh = randomized_svd(a, n_components=2, random_state=0)
 U.shape, s.shape, Vh.shape
 #os valores de retorno acima foram iguais ao da funcao do georges abaixo
 '''
-#%%
+
 # Function from Georges
 # preciso entender a saída
 def randomized_svd_g(X, K, sparse_random_projection=False, custom_sparsity_param=None, oversampling=10, power_iterations=0):
@@ -621,7 +961,6 @@ def randomized_svd_g(X, K, sparse_random_projection=False, custom_sparsity_param
 
 
 '''
-# %%
 from sklearn.utils.extmath import randomized_svd
 sklearn.utils.extmath.randomized_svd
 from sklearn.decomposition import PC

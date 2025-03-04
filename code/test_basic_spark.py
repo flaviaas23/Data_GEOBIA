@@ -49,6 +49,7 @@ ps.DataFrame(data=np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 0]]),
 # %% #Constructing DataFrame from Pandas DataFrame with Pandas index:
 pdf = pd.DataFrame(data=np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 0]]),
     columns=['a', 'b', 'c', 'd', 'e'])
+    
 ps_df = ps.DataFrame(data=pdf, index=pd.Index([1, 4]))
 type(ps_df)
 #pyspark.pandas.frame.DataFrame

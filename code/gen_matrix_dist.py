@@ -60,7 +60,7 @@ def calc_avg_array(arr, img_dic, c, med='med', pca=1):
     # Map array elements to dictionary values if they are not nan (-9999, -32768)
     #pixel_values_map = [pixel_band_value[elem[0], elem[1]] for elem in arr]
     if not pca:
-        pixel_values_map = [img_dic[b][elem[0], elem[1]] for elem in arr if image_band_dic[b][elem[0], elem[1]] not in [-9999, -32768]]
+        pixel_values_map = [img_dic[b][elem[0], elem[1]] for elem in arr if img_dic[b][elem[0], elem[1]] not in [-9999, -32768]]
     else:
         pixel_values_map = [img_dic[c][elem[0], elem[1]] for elem in arr if img_dic[c][elem[0], elem[1]]]
     #print (f'{b}\nmapped array: {pixel_values_map}')
@@ -124,7 +124,7 @@ def gen_coords_snic_df(segments_snic_sel_sp, sh_print=False):
     return coords_snic_df
 
 #20240730: versao ok
-def gen_centroid_snic_df(image_band_dic, centroids_snic_sp, coords_snic_df, \
+def gen_centroid_snic_dask(image_band_dic, centroids_snic_sp, coords_snic_df, \
                          bands_sel, ski=True, stats=True, sh_print=True):
     '''
     Function to gen a df from snic centroids
@@ -150,12 +150,14 @@ def gen_centroid_snic_df(image_band_dic, centroids_snic_sp, coords_snic_df, \
     print (f'time to gen centroids dictionary: {t2-t1}') if sh_print else None
     snic_centroid_df = pd.DataFrame(centroids_snic_sp_dic)
     del centroids_snic_sp_dic     
+
     n_part = round(snic_centroid_df.shape[0] * snic_centroid_df.shape[1]/10000)        
     dd_snic_centroid_df = dd.from_pandas(snic_centroid_df,npartitions=n_part)  
     dd_snic_centroid_df = dd_snic_centroid_df.repartition(partition_size="100MB")
     dd_coords_snic_df =  dd.from_pandas(coords_snic_df,npartitions=n_part)
     dd_coords_snic_df = dd_coords_snic_df.repartition(partition_size="100MB")
     del coords_snic_df, snic_centroid_df
+    
     #criar as stats das bandas e SPs
     if stats:                
         for c in image_band_dic.keys():            

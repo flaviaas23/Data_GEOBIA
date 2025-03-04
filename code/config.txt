@@ -1,0 +1,3 @@
+base_dir = '/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/'
+img_dir = 'data/tmp/spark_pca_images/'
+read_quadrant = 1 

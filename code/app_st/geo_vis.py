@@ -112,7 +112,9 @@ def load_cluster(id_test=314,read_segms=True, tipo_cluster='clara_'):
     load dic with cluster infos
     '''
     ### organizar
-    save_path = '/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/test_segm_results/SENTINEL-2_MSI_20LMR_RGB_2022-07-16'
+    # data/test_segm_results/SENTINEL-2_MSI_20LMR_RGB_2022-07-16_pkls
+    # save_path = '/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/test_segm_results/SENTINEL-2_MSI_20LMR_RGB_2022-07-16'
+    save_path = '/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/test_segm_results/SENTINEL-2_MSI_20LMR_RGB_2022-07-16_pkls/SENTINEL-2_MSI_20LMR_RGB_2022-07-16'
     #id_test=314
     #props_df_sel=read_props_df_sel([id_test],save_path, obj_to_read='props_df_sel')
     #label_file= '/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/test_segm_results/SENTINEL-2_MSI_20LMR_RGB_2022-07-16_label_dict_314.pkl'

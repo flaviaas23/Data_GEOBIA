@@ -136,7 +136,9 @@ def load_cluster(id_test=3,dist_met='euclidean',read_segms=False, tipo_cluster='
     '''
     ### organizar
     #save_path = '/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/test_segm_results/SENTINEL-2_MSI_20LMR_RGB_2022-07-16'
-    save_path = '/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/test_segm_results/SENTINEL-2_MSI_20LMR/SENTINEL-2_MSI_20LMR_2022-07-16/SENTINEL-2_MSI_20LMR_2022-07-16'
+    # save_path = '/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/test_segm_results/SENTINEL-2_MSI_20LMR/SENTINEL-2_MSI_20LMR_2022-07-16/SENTINEL-2_MSI_20LMR_2022-07-16'
+    save_path = '/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/test_segm_results/SENTINEL-2_MSI_20LMR_RGB_2022-07-16_pkls/SENTINEL-2_MSI_20LMR_RGB_2022-07-16'
+    
     #for ts"
     #save_path = '/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/data/test_segm_results/SENTINEL-2_MSI_20LMR/SENTINEL-2_MSI_20LMR_2022-12-23'
     #new_image:
@@ -153,6 +155,7 @@ def load_cluster(id_test=3,dist_met='euclidean',read_segms=False, tipo_cluster='
     with open(file_to_open, 'rb') as handle: 
         b_props_cluster = pickle.load(handle)
     props_df_sel={}
+    st.write(f'b_props_cluster keys = {b_props_cluster.keys()}')
     #props_df_sel[id_test]=b_props_cluster['props_df_sel_cluster'][id_test]
     #comentei abaixo 18/03/2024
     props_df_sel[id_test]=b_props_cluster[id_test]['props_df_sel_cluster'][id_test]
@@ -335,7 +338,7 @@ def main():
 
     img, img_sel_norm, img_width = st.session_state["images"]
 
-    id_test=3 #314 #3
+    id_test=314 #314 #3
     if LOAD_CLUSTER:
         st.session_state["LOAD_CLUSTER"]=False
         #st.write("if load df",st.session_state["LOAD_CLUSTER"])
@@ -346,7 +349,8 @@ def main():
         
         #load example _cluster_clara_40_5_iter_
         props_df_sel, matrix_sim, centroid_sel_df, \
-            centroid_sel_df_idx,coords =load_cluster(id_test, tipo_cluster='clara_40_5iter_')
+            centroid_sel_df_idx,coords =load_cluster(id_test, tipo_cluster='clara_400_5iter_')
+            # centroid_sel_df_idx,coords =load_cluster(id_test, tipo_cluster='clara_40_5iter_')
 
         # #load for euclidean
         # props_df_sel, matrix_sim, centroid_sel_df,\

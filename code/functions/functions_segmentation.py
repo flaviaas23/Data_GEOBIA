@@ -1,5 +1,6 @@
 #copied at 17/06/2024
 #From: notebooks/ComparaSLIC_SNIC.ipynb
+# 20241001: baixado do exacta
 
 import numpy as np
 from math import ceil
@@ -19,7 +20,7 @@ from tqdm import tqdm
 
 import dask.array as da
 import dask.dataframe as dd 
-from dask_ml.decomposition import PCA
+#from dask_ml.decomposition import PCA
 
 from pysnic.algorithms.snic import snic
 #For snic SP
@@ -37,7 +38,28 @@ from skimage.util import img_as_float
 import imageio.v2 as imageio
 from skimage.measure import regionprops, regionprops_table
 
-from functions_pca import save_to_pickle, calc_avg_array
+from functions.functions_pca import save_to_pickle, calc_avg_array, \
+                                    calc_avg_array_pca
+
+# 20241124: function to get coords positons to get the image qudrant
+def get_quadrant_coords(q, imgSize):
+    '''
+    q = number of quadrant
+    '''
+    Q_imgSize = imgSize//2
+    if q == 1:
+        rowi, rowf = 0, Q_imgSize
+        coli, colf = 0, Q_imgSize
+    elif q == 2:
+        rowi, rowf = 0, Q_imgSize
+        coli, colf = Q_imgSize, imgSize
+    elif q == 3:
+        rowi, rowf = Q_imgSize, imgSize
+        coli, colf = 0, Q_imgSize
+    elif q == 4:
+        rowi, rowf,  = Q_imgSize, imgSize
+        coli, colf = Q_imgSize, imgSize
+    return rowi, rowf, coli, colf
 
 #Functions for snic
 ##### Function to gen snic coords df
@@ -58,7 +80,7 @@ def gen_coords_snic_df(segments_snic_sel_sp, sh_print=False):
     for l in coords_snic_dic.keys():
         num_pixels_dic[l] = len(coords_snic_dic[l])
     t3=time.time()    
-    print (t2-t1, t3-t2) if sh_print else None
+    print (f'{t2-t1:.2f}, {t3-t2:.2f}') if sh_print else None
     # create a df using the dictionaries coords_snic_dic and num_pixels_dic
     t4=time.time()
     coords_snic_df =pd.DataFrame({'label':coords_snic_dic.keys(), \
@@ -69,13 +91,14 @@ def gen_coords_snic_df(segments_snic_sel_sp, sh_print=False):
     #coords_snic_df['label'] = coords_snic_dic.keys()
     #coords_snic_df=coords_snic_df.set_index('label')
     t5=time.time()
-    print (t5-t1, t5-t4) if sh_print else None
+    print (f'Tempo total para gerar coords df: {t5-t1:.2f}, tempo para gerar só df {t5-t4:.2f}') if sh_print else None
     # n_part = round(coords_snic_df.shape[0] * coords_snic_df.shape[1]/1000)    
     # dd_coords_snic_df = dd.from_pandas(coords_snic_df,npartitions=n_part)    
     return coords_snic_df
 
-##### Function to gen snic df 
-def gen_centroid_snic_df(image_band_dic, centroids_snic_sp, coords_snic_df, \
+##### Function to gen snic df , 
+# 20240823: antiga gen_centroid_snic_df, gera em dask os centroids e coords df
+def gen_centroid_snic_ddf(image_band_dic, centroids_snic_sp, coords_snic_df, \
                          bands_sel, ski=True, stats=True, sh_print=False):
     '''
     Function to gen a df from snic centroids
@@ -101,9 +124,15 @@ def gen_centroid_snic_df(image_band_dic, centroids_snic_sp, coords_snic_df, \
     print (t2-t1) if sh_print else None
     snic_centroid_df = pd.DataFrame(centroids_snic_sp_dic)
     del centroids_snic_sp_dic     
-    n_part = round(snic_centroid_df.shape[0] * snic_centroid_df.shape[1]/1000)    
-    dd_snic_centroid_df = dd.from_pandas(snic_centroid_df,npartitions=n_part)        
+    # n_part = round(snic_centroid_df.shape[0] * snic_centroid_df.shape[1]/1000)    
+    # dd_snic_centroid_df = dd.from_pandas(snic_centroid_df,npartitions=n_part)        
+    # dd_coords_snic_df =  dd.from_pandas(coords_snic_df,npartitions=n_part)
+    n_part = round(snic_centroid_df.shape[0] * snic_centroid_df.shape[1]/10000)        
+    dd_snic_centroid_df = dd.from_pandas(snic_centroid_df,npartitions=n_part)  
+    dd_snic_centroid_df = dd_snic_centroid_df.repartition(partition_size="100MB")
     dd_coords_snic_df =  dd.from_pandas(coords_snic_df,npartitions=n_part)
+    dd_coords_snic_df = dd_coords_snic_df.repartition(partition_size="100MB")
+    del coords_snic_df, snic_centroid_df
     #criar as stats das bandas e SPs
     if stats:                
         for c in image_band_dic.keys():            
@@ -129,6 +158,137 @@ def gen_centroid_snic_df(image_band_dic, centroids_snic_sp, coords_snic_df, \
                                                            #   c=c).apply(pd.Series)
     return dd_snic_centroid_df, dd_coords_snic_df    
 
+#20240823: Usei como base a funcao gen_centroid_snic_df que virou gen_centroid_snic_ddf,
+#          principal diferença no apply,  meta= foi removido e nao gera mais coords em dask
+#          testada no jupyter notebooks/spk_gen_df_toPCA_exemplo.ipynb 
+def gen_centroid_snic_df(image_band_dic, centroids_snic_sp, coords_snic_df, \
+                         bands_sel, ski=True, stats=True, dask=False, sh_print=True):
+    '''
+    Function to gen a df from snic centroids em pandas
+    Ski: 
+        True: considere the avg values of snic centroid 
+              and do avg only of bands not used in snic
+        False: do avg of all bands 
+    '''   
+    # gen a dictionary with num_pixels, centroids and bands/pca 
+    # values and do a df with results of snic segmentation    
+    t1=time.time()
+    snic_n_segms = len(centroids_snic_sp)
+    #centroids_snic_only = [subar[0] for subar in centroids_snic_sp]
+    centroids_snic_sp_dic={}
+    centroids_snic_sp_dic['label'] = [i for i in range(snic_n_segms)]
+    centroids_snic_sp_dic['num_pixels'] = [subar[2] for subar in centroids_snic_sp]
+    centroids_snic_sp_dic['centroid-0'] = [subar[0][0] for subar in centroids_snic_sp]
+    centroids_snic_sp_dic['centroid-1'] = [subar[0][1] for subar in centroids_snic_sp]
+    if ski:
+        for i,b in enumerate(bands_sel):
+            centroids_snic_sp_dic['avg_'+b] = [subar[1][i] for subar in centroids_snic_sp]
+    t2=time.time()
+    print (f'time to gen centroids dictionary: {t2-t1:.2f}') if sh_print else None
+    snic_centroid_df = pd.DataFrame(centroids_snic_sp_dic)
+    del centroids_snic_sp_dic  
+    if dask:
+        n_part = round(snic_centroid_df.shape[0] * snic_centroid_df.shape[1]/10000)        
+        dd_snic_centroid_df = dd.from_pandas(snic_centroid_df,npartitions=n_part)  
+        dd_snic_centroid_df = dd_snic_centroid_df.repartition(partition_size="100MB")
+        dd_coords_snic_df =  dd.from_pandas(coords_snic_df,npartitions=n_part)
+        dd_coords_snic_df = dd_coords_snic_df.repartition(partition_size="100MB")
+        del coords_snic_df, snic_centroid_df
+    else:
+        dd_snic_centroid_df = snic_centroid_df
+        dd_coords_snic_df = coords_snic_df
+    #criar as stats das bandas e SPs
+    if stats:                
+        for c in image_band_dic.keys():            
+            # no nome da banda vai ser a mediana do sp 
+            t1=time.time()
+            dd_snic_centroid_df['med_'+c] = dd_coords_snic_df['coords'].apply(calc_avg_array, img_dic=image_band_dic[c],\
+                                                              c=c, med='med', pca=1) #, meta=dd_coords_snic_df['coords']) meta usado para dask
+            t2=time.time()
+            dd_snic_centroid_df['std_'+c] = dd_coords_snic_df['coords'].apply(calc_avg_array, img_dic=image_band_dic[c],\
+                                                              c=c, med='std',pca=1)#, meta=dd_coords_snic_df['coords'])meta usado para dask
+            t3=time.time()
+            print (f'{c} tempo calc mediana: {t2-t1:.2f}s, std: {t3-t2:.2f}s ') if sh_print else None
+            # Não precisa fazer a média pq o snic retorna as medias das bandas de cada sp (grupo)
+            # valores incluidos acima no if do ski
+            # testei e vi que os valores sao iguais
+            # testar se o avg da banda já nao existe e incluir
+            if not ski:
+                print (c, ski, "do avg") if sh_print else None
+                dd_snic_centroid_df['avg_'+c] = dd_coords_snic_df['coords'].apply(calc_avg_array, img_dic=image_band_dic[c],\
+                                                                   c=c, med='avg', pca=1)#, meta=dd_coords_snic_df['coords'])meta usado para dask
+            elif (c not in bands_sel): 
+                print (c, "do avg") if sh_print else None
+                dd_snic_centroid_df['avg_'+c] = dd_coords_snic_df['coords'].apply(calc_avg_array, img_dic=image_band_dic[c],\
+                                                                   c=c, med='avg', pca=1) # meta=dd_coords_snic_df['coords']) meta usado para dask
+                
+                #dd_centroid_df[[c, 'avg_'+c, 'std_'+c]] = dd_coords_SP_df['coords'].compute().apply(calc_avg_array, img_dic=image_band_dic[c],\
+                                                           #   c=c).apply(pd.Series)
+    return dd_snic_centroid_df#, dd_coords_snic_df  
+#20240730: versao ok
+#veio do arquivo gen_matrix_dist.py
+def gen_centroid_snic_dask(image_band_dic, centroids_snic_sp, coords_snic_df, \
+                         bands_sel, ski=True, stats=True, sh_print=True):
+    '''
+    Function to gen a df from snic centroids
+    Ski: 
+        True: considere the avg values of snic centroid 
+              and do avg only of bands not used in snic
+        False: do avg of all bands 
+    '''   
+    # gen a dictionary with num_pixels, centroids and bands/pca 
+    # values and do a df with results of snic segmentation    
+    t1=time.time()
+    snic_n_segms = len(centroids_snic_sp)
+    #centroids_snic_only = [subar[0] for subar in centroids_snic_sp]
+    centroids_snic_sp_dic={}
+    centroids_snic_sp_dic['label'] = [i for i in range(snic_n_segms)]
+    centroids_snic_sp_dic['num_pixels'] = [subar[2] for subar in centroids_snic_sp]
+    centroids_snic_sp_dic['centroid-0'] = [subar[0][0] for subar in centroids_snic_sp]
+    centroids_snic_sp_dic['centroid-1'] = [subar[0][1] for subar in centroids_snic_sp]
+    if ski:
+        for i,b in enumerate(bands_sel):
+            centroids_snic_sp_dic['avg_'+b] = [subar[1][i] for subar in centroids_snic_sp]
+    t2=time.time()
+    print (f'time to gen centroids dictionary: {t2-t1}') if sh_print else None
+    snic_centroid_df = pd.DataFrame(centroids_snic_sp_dic)
+    del centroids_snic_sp_dic     
+
+    n_part = round(snic_centroid_df.shape[0] * snic_centroid_df.shape[1]/10000)        
+    dd_snic_centroid_df = dd.from_pandas(snic_centroid_df,npartitions=n_part)  
+    dd_snic_centroid_df = dd_snic_centroid_df.repartition(partition_size="100MB")
+    dd_coords_snic_df =  dd.from_pandas(coords_snic_df,npartitions=n_part)
+    dd_coords_snic_df = dd_coords_snic_df.repartition(partition_size="100MB")
+    del coords_snic_df, snic_centroid_df
+    
+    #criar as stats das bandas e SPs
+    if stats:                
+        for c in image_band_dic.keys():            
+            # no nome da banda vai ser a mediana do sp 
+            t1=time.time()
+            dd_snic_centroid_df['med_'+c] = dd_coords_snic_df['coords'].apply(calc_avg_array_pca, img_dic=image_band_dic[c],\
+                                                              c=c, med='med', meta=dd_coords_snic_df['coords'])
+            t2=time.time()
+            dd_snic_centroid_df['std_'+c] = dd_coords_snic_df['coords'].apply(calc_avg_array_pca, img_dic=image_band_dic[c],\
+                                                              c=c, med='std', meta=dd_coords_snic_df['coords'])
+            t3=time.time()
+            print (f'{c} tempo calc mediana: {t2-t1}s, std: {t3-t2}s ') if sh_print else None
+            # Não precisa fazer a média pq o snic retorna as medias das bandas de cada sp (grupo)
+            # valores incluidos acima no if do ski
+            # testei e vi que os valores sao iguais
+            # testar se o avg da banda já nao existe e incluir
+            if not ski:
+                print (c, ski, "do avg") if sh_print else None
+                dd_snic_centroid_df['avg_'+c] = dd_coords_snic_df['coords'].apply(calc_avg_array_pca, img_dic=image_band_dic[c],\
+                                                                   c=c, med='avg', meta=dd_coords_snic_df['coords'])
+            elif (c not in bands_sel): 
+                print (c, "do avg") if sh_print else None
+                dd_snic_centroid_df['avg_'+c] = dd_coords_snic_df['coords'].apply(calc_avg_array_pca, img_dic=image_band_dic[c],\
+                                                                   c=c, med='avg', meta=dd_coords_snic_df['coords'])
+                
+                #dd_centroid_df[[c, 'avg_'+c, 'std_'+c]] = dd_coords_SP_df['coords'].compute().apply(calc_avg_array, img_dic=image_band_dic[c],\
+                                                           #   c=c).apply(pd.Series)
+    return dd_snic_centroid_df, dd_coords_snic_df  
 ##### Function run_snic_gen_dask
 def run_snic_gen_dask(id,img_sel_norm_shape, ski_img_sel_norm_list, n_segms, \
              compact, f_name, img_band_dic_norm, bands_sel, save_snic=False, sh_print=True):
@@ -207,12 +367,110 @@ def run_snic_gen_dask(id,img_sel_norm_shape, ski_img_sel_norm_list, n_segms, \
         print (f'id: {id}, save coords df took {t6-t5:.2f}') if sh_print else None
         del obj_dic  
     return  dd_snic_centroid_ski_df, dd_coords_snic_ski_df, segments_snic_sel_ski_sp    
+## Function to run snic and gen dfs from snic output
+# 20240823 : testada no jupyter notebooks/spk_gen_df_toPCA_exemplo.ipynb 
+def run_snic_gen_dfs(id,img_sel_norm_shape, ski_img_sel_norm_list, n_segms, \
+             compact, f_name, img_band_dic_norm, bands_sel, save_snic=False, sh_print=True):
+    '''
+    Function to run snic and return snic_centroid_ski_df, coords_snic_ski_df, segments_snic_sel_ski_sp
+    ski = true para usar o avg que é retornado do snic na gen do df
+    '''
+    print(f"run_snic 0. id: {id}, {n_segms} {compact}") if sh_print  else None
+    
+    t1=time.time()
+    # compute grid
+    grid = compute_grid(img_sel_norm_shape, n_segms)
+    seeds = list(chain.from_iterable(grid))
+    seed_len = len(seeds)
+    t2=time.time()
+    print(f"run_snic 1. id: {id}, compute_grid took: {t2 - t1:.2f}") if sh_print  else None
+    
+    t1=time.time()
 
-##### Function run_snic_gen_dask
+    # choose a distance metric #se nao fornecido faz exatamente isso
+    distance_metric = create_augmented_snic_distance(img_sel_norm_shape, seed_len, compact)
+    
+    t2=time.time()
+    print(f"run_snic 1. id: {id}, create_augmented_snic_distance took: {t2 - t1:.2f}") if sh_print  else None
+
+    #start = timer()
+    t2=time.time()
+    segments_snic_sel_ski_sp, dist_snic_sp, centroids_snic_ski_sp = snic(
+                            ski_img_sel_norm_list,
+                            #img_sel_norm.tolist(),
+                            seeds,
+                            compact, nd_computations["3"], distance_metric)#,
+                            #update_func=lambda num_pixels: print("processed %05.2f%%" % (num_pixels * 100 / number_of_pixels)))
+    
+    t3=time.time()
+    print(f"run snic 2. id: {id}, snic took: {t3 - t2:.2f}") if sh_print  else None
+    ## gen coords_df
+    #for image with ski
+    coords_snic_ski_df = gen_coords_snic_df(segments_snic_sel_ski_sp)
+    #separar a linha com label -1
+    coords_snic_ski_df_nan = coords_snic_ski_df[coords_snic_ski_df['label'] == -1]
+    coords_snic_ski_df = coords_snic_ski_df[coords_snic_ski_df['label'] != -1]
+
+    #gen centroid and coords em dask
+    dd_snic_centroid_ski_df = gen_centroid_snic_df(img_band_dic_norm,\
+                                                    centroids_snic_ski_sp, 
+                                                    coords_snic_ski_df, bands_sel,
+                                                    ski=True, stats=True, dask=False) #20240823 mudei skipara True para nao 
+                                                                                     #fazer o avg q já vem do snic
+
+    #t_snic_sp=t3-t2
+    t4 = time.time()
+    print (f'run snic 3. id: {id}, gen centroids and coords df toof {t4-t3:.2f}') if sh_print else None
+    
+    if save_snic:
+        t5 = time.time()
+        obj_dic = {}
+        obj_dic[id] = {
+            "centroid_df": dd_snic_centroid_ski_df, #.compute(),#, 
+            "params_test": [n_segms, compact, True] #skimage used = True
+            
+           }
+        file_to_save = f_name +'_snic_centroid_df_'+str(id)+'.pkl'
+        save_to_pickle(obj_dic, file_to_save)
+        t6 = time.time()
+        #print (f'centroid file: {file_to_save}')
+        print (f'id: {id}, save centroids df took {t6-t5:.2f}') if sh_print else None
+        del obj_dic
+
+        t5 = time.time()
+        obj_dic = {}
+        obj_dic[id] = {
+            "segments": segments_snic_sel_ski_sp
+        }
+        file_to_save = f_name +'_snic_segments_'+str(id)+'.pkl'
+        save_to_pickle(obj_dic, file_to_save)
+        t6 = time.time()
+        #print (f'centroid file: {file_to_save}')
+        print (f'id: {id}, save segments took {t6-t5:.2f}') if sh_print else None
+        del obj_dic
+        
+        t5 = time.time()
+        obj_dic ={}
+        obj_dic[id] = {
+            #"props_df_sel": props_df_sel#, 
+            "coords": coords_snic_ski_df,
+            "coords_nan": coords_snic_ski_df_nan            
+           }
+        file_to_save = f_name + '_snic_coords_' +str(id)+'.pkl'
+        save_to_pickle(obj_dic, file_to_save)
+        t6 = time.time()
+        #print (f'coords file: {file_to_save}')
+        print (f'id: {id}, save coords df took {t6-t5:.2f}') if sh_print else None
+        del obj_dic  
+        
+
+    return  dd_snic_centroid_ski_df, segments_snic_sel_ski_sp   
+#### 
+##### Function gen_snic_dask_df : read snic files and gen dfs em dask
 def gen_snic_dask_df(id,img_sel_norm_shape, ski_img_sel_norm_list, n_segms, \
              compact, f_name, img_band_dic_norm, bands_sel, save_snic=False, sh_print=True):
     '''
-    Function to gen snic dfs
+    Function to gen snic dfs reading  segments and centroids from pkl files
     '''    
     # t1=time.time()
     # # compute grid
@@ -249,6 +507,7 @@ def gen_snic_dask_df(id,img_sel_norm_shape, ski_img_sel_norm_list, n_segms, \
     coords_snic_ski_df_nan = coords_snic_ski_df[coords_snic_ski_df['label'] == -1]
     coords_snic_ski_df = coords_snic_ski_df[coords_snic_ski_df['label'] != -1]
     #gen centroid and coords em dask
+    t3 = time.time()
     dd_snic_centroid_df, dd_coords_snic_df = gen_centroid_snic_df(img_band_dic_norm,\
                                                                 centroids_snic_ski_sp, 
                                                                 coords_snic_ski_df, bands_sel,
@@ -256,7 +515,7 @@ def gen_snic_dask_df(id,img_sel_norm_shape, ski_img_sel_norm_list, n_segms, \
         
     #t_snic_sp=t3-t2
     t4 = time.time()
-    print (f'id: {id}, gen centroids and coords df toof {t4-t3:.2f}') if sh_print else None
+    print (f'id: {id}, gen centroids and coords df took {t4-t3:.2f}') if sh_print else None
     
     if save_snic: #precisa acerta este if 20240729
         t5 = time.time()
@@ -297,6 +556,60 @@ def gen_snic_dask_df(id,img_sel_norm_shape, ski_img_sel_norm_list, n_segms, \
         print (f'id: {id}, save coords df took {t6-t5:.2f}') if sh_print else None
         del obj_dic  
     return  dd_snic_centroid_df, dd_coords_snic_df, segments_snic_sel_ski_sp    
+
+###Function to save to pickle results of segmentation 
+# 20240826: 
+def save_segm(id, snic_centroid_df, segments_snic_sel_sp, 
+              f_name, params_test, str_fn='', sh_print=False ):
+    '''
+    Function to save results of segmentation
+    params_test = {n_segms:, compact:, ski_img:}
+    '''
+
+    t5 = time.time()
+    obj_dic = {}
+    obj_dic[id] = {
+        "centroid_df": snic_centroid_df, #.compute(),#, 
+        "params_test": params_test #skimage used = True
+            
+           }
+    test = str_fn+'_n_'+str(params_test['segms'])+'_comp_'+str(params_test['compactness'])
+    f_name = f_name+test
+    file_to_save = f_name +'_snic_centroid_df_'+str(id)+'.pkl'
+    save_to_pickle(obj_dic, file_to_save)
+
+    t6 = time.time()
+    print (f'centroid file: {file_to_save}') if sh_print else None
+    print (f'id: {id}, save centroids df took {t6-t5:.2f}') if sh_print else None
+    del obj_dic
+
+    t5 = time.time()
+    obj_dic = {}
+    obj_dic[id] = {
+        "segments": segments_snic_sel_sp,
+        "params_test": params_test #skimage used = True
+        }
+    file_to_save = f_name +'_snic_segments_'+str(id)+'.pkl'
+    save_to_pickle(obj_dic, file_to_save)
+
+    t6 = time.time()
+    print (f'segments file: {file_to_save}') if sh_print else None
+    print (f'id: {id}, save segments took {t6-t5:.2f}') if sh_print else None
+    del obj_dic
+        
+        # t5 = time.time()
+        # obj_dic ={}
+        # obj_dic[id] = {
+        #     #"props_df_sel": props_df_sel#, 
+        #     "coords": coords_snic_ski_df,
+        #     "coords_nan": coords_snic_ski_df_nan            
+        #    }
+        # file_to_save = f_name + '_snic_coords_' +str(id)+'.pkl'
+        # save_to_pickle(obj_dic, file_to_save)
+        # t6 = time.time()
+        # #print (f'coords file: {file_to_save}')
+        # print (f'id: {id}, save coords df took {t6-t5:.2f}') if sh_print else None
+        #del obj_dic  
 
 
 ##### Function to gen statistics of bands(cols) of slic sp df
