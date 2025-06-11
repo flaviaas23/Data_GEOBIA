@@ -3,7 +3,8 @@
 #           lê sdft por data com todas as bandas e inseri no df_toPCA
 # 20241202: ajustado para incluir a criação do df com os tempos de processamento, 
 #           passagem dos parametros de configuração por argumentos 
-# 20241210: Ler o sdft da data e do quadrante especificado
+# 20241210: Ler o sdft da data e do quadrante especificado 
+# 20240506: ou ler o sdft da imagem completa
 import os
 import gc
 import time
@@ -59,7 +60,7 @@ parser = argparse.ArgumentParser(description="Program segment image")
 parser.add_argument("-bd", '--base_dir', type=str, help="Diretorio base", default='')
 parser.add_argument("-sd", '--save_dir', type=str, help="Diretorio base para salvar saidas de cada etapa", default='data/tmp2/')
 # parser.add_argument("-td", '--tif_dir', type=str, help="Dir dos tiffs", default='data/Cassio/S2-16D_V2_012014_20220728_/')
-parser.add_argument("-q", '--quadrante', type=int, help="Numero do quadrante da imagem [0-all,1,2,3,4]", default=1)
+parser.add_argument("-q", '--quadrante', type=int, help="Numero do quadrante da imagem [0-all,1,2,3,4,9]", default=1)
 parser.add_argument("-ld", '--log_dir', type=str, help="Dir do log", default='code/logs/')
 parser.add_argument("-i", '--name_img', type=str, help="Nome da imagem", default='S2-16D_V2_012014')
 parser.add_argument("-sp", '--sh_print', type=int, help="Show prints", default=1)
@@ -137,7 +138,7 @@ from pyspark.sql.functions import row_number
 
 i=0 
 q=read_quad
-for t in dates:#[:6]:
+for t in dates[6:]: # dates
     print (f'******************** {i}: {t} *******************')
     # band_img_files = band_tile_img_files
     # band_img_file_to_load=[x for x in band_img_files if t in x.split('/')[-1]]
@@ -205,7 +206,10 @@ for t in dates:#[:6]:
     t1=time.time()
     # sdfPath = temp_path + "/spark_sdft_"+t
     # sdfPath = save_etapas_dir + "spark_sdft_"+t  #commented 20241210
-    sdfPath = save_etapas_dir + "spark_sdft_"+ t + '/Quad_'+str(read_quad)
+    if read_quad==9:
+        sdfPath = save_etapas_dir + "spark_sdft_"+t +'/Full'
+    else:
+        sdfPath = save_etapas_dir + "spark_sdft_"+ t + '/Quad_'+str(read_quad)
     if i==0:   
         # window_spec = Window.orderBy('coords_0','coords_1')    
         # # Add a sequential index column
@@ -270,7 +274,12 @@ for t in dates:#[:6]:
 logger.info(f'Inicio do save em parquet')
 t1=time.time()
 # temp_path= '/Users/flaviaschneider/Documents/flavia/Data_GEOBIA' + '/data/tmp'
-sdfPath = save_etapas_dir + "spark_df_toPCA_Quad_"+str(read_quad)
+if read_quad==9:
+    sdfPath = save_etapas_dir + "spark_df_toPCA_Full_2"
+else:
+    sdfPath = save_etapas_dir + "spark_df_toPCA_Quad_"+str(read_quad)
+
+print (f'salvando em {sdfPath}')
 df_toPCA.write.parquet(sdfPath,mode = 'overwrite')
 t2=time.time()
 logger.info(f'Tempo para salvar em parquet {t2-t1:.2f}s {(t2-t1)/60:.2f}m')

@@ -39,10 +39,30 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 # warnings.filterwarnings("ignore", category=VisibleDeprecationWarning)                        
 
 # Add the parent directory (code/) to sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if parent_dir not in sys.path:
+    sys.path.append(parent_dir)
 
 from functions.functions_segmentation import gen_coords_snic_df
 from functions.functions_pca import get_bandsDates, list_files_to_read
+from functions.functions_cluster import gen_df_percentils
+from functions.functions_TS import gen_TSdF#, plot_TS_perc_clusters,\
+#                                  gen_groupClusterTS_df, plot_TS_sel
+
+#bloco usado para recarregar as funcoes sem precisar parar o programa
+import importlib
+import functions.functions_TS
+import functions.functions_cluster
+
+importlib.reload(functions.functions_TS)
+importlib.reload(functions.functions_cluster)
+
+gen_TSdF = functions.functions_TS.gen_TSdF
+gen_df_percentils = functions.functions_cluster.gen_df_percentils
+gen_groupClusterTS_df = functions.functions_TS.gen_groupClusterTS_df
+plot_TS_perc_clusters= functions.functions_TS.plot_TS_perc_clusters # updated dynamically
+plot_TS_sel = functions.functions_TS.plot_TS_sel
 
 def local_css(file_name):
     with open(file_name) as f:
@@ -134,8 +154,12 @@ def main():
             band_tile_img_files = list_files_to_read(tif_dir, name_img, sh_print=0)
             bands, dates = get_bandsDates(band_tile_img_files, tile=0)
             st.session_state['dates'] = dates
+            st.session_state['band_tile_img_files'] = band_tile_img_files
+            
     else:
         dates = st.session_state['dates']
+        band_tile_img_files = st.session_state['band_tile_img_files']
+        
     t_day = st.sidebar.selectbox(
             "Select Image Day",
             dates,
@@ -143,7 +167,7 @@ def main():
             on_change=on_day_change,  # Call the function when the value changes
             )
 
-    st.write(f'inicio cluster page\n {base_dir}, q= {q}, quad={quad}')
+    # st.write(f'inicio cluster page\n {base_dir}, q= {q}, quad={quad}')
 
     # if st.session_state:
     #     st.write("Keys in session_state:", list(st.session_state.keys()))
@@ -156,7 +180,7 @@ def main():
  
     LOAD_CLUSTER = st.session_state["LOAD_CLUSTER"]
 
-    st.write(f'LOAD_CLUSTER = {LOAD_CLUSTER}')
+    # st.write(f'LOAD_CLUSTER = {LOAD_CLUSTER}')
     window_width = st_javascript("window.innerWidth")  # Fetch browser width dynamically
     # st.write(f"Window width: {window_width}px")  # Debug info
 
@@ -258,7 +282,10 @@ def main():
         # matriz generated with clusters with higher distances
         # file_to_open = save_etapas_dir + 'pca_snic_cluster/clara_ms_'+str(id)+'_quad_'+str(read_quad)+'.pkl'
         # matriz generated with clusters from n_opt to the end (n=30)
-        file_to_open = save_etapas_dir + 'pca_snic_cluster/clara_ms_'+str(id)+'_30_quad_'+str(read_quad)+'.pkl'
+        # file_to_open = save_etapas_dir + 'pca_snic_cluster/clara_ms_'+str(id)+'_30_quad_'+str(read_quad)+'.pkl'
+        # matriz generated with clusters with higher distances of ms1
+        file_to_open = save_etapas_dir + 'pca_snic_cluster/clara_ms2_'+str(id)+'_quad_'+str(read_quad)+'.pkl'
+
 
         with open(file_to_open, 'rb') as handle:    
             b_ms = pickle.load(handle)
@@ -281,8 +308,10 @@ def main():
         # sim matriz generated with clusters with higher distances for clustering
         # file_to_open = save_etapas_dir + 'pca_snic_cluster/clara_ms_'+str(id)+'_InterIntra_quad_'+str(read_quad)+'.pkl'
         # matriz generated with clusters from n_opt to the end (n=30) for clustering
-        file_to_open = save_etapas_dir + 'pca_snic_cluster/clara_ms_'+str(id)+'_30_InterIntra_quad_'+str(read_quad)+'.pkl'
-
+        # file_to_open = save_etapas_dir + 'pca_snic_cluster/clara_ms_'+str(id)+'_30_InterIntra_quad_'+str(read_quad)+'.pkl'
+        # cluster with sim matrix2 considering the max distances 
+        file_to_open = save_etapas_dir + 'pca_snic_cluster/clara_ms2_'+str(id)+'_InterIntra_quad_'+str(read_quad)+'.pkl'
+        
         with open(file_to_open, 'rb') as handle:    
             b_ms = pickle.load(handle)
 
@@ -313,9 +342,9 @@ def main():
 
         #read similarity matrix of cluster simple
         # considering max distances to gen sim
-        # matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_Quad_'+str(q)
+        matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_Quad_'+str(q)
         # considering n_opt to n=30
-        matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_30_Quad_'+str(q)
+        # matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_30_Quad_'+str(q)
         t1 = time.time()
         zarr_group = zarr.open(matrix_path, mode='a')
         t2 = time.time()
@@ -325,11 +354,11 @@ def main():
             st.write (f'1.5 matrix_sim_sel.shape: {matrix_sim_sel.shape}')
 
         #read similarity matrix of cluster with distance sim matrix
-        # matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_ms_Quad_'+str(q)
+        matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_ms_Quad_'+str(q)
         # sim matriz of cluster using dist matriz of higer distances
         # matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_ms_3_Quad_'+str(q)
         # sim matriz of cluster using dist matriz of n_opt to n=30
-        matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_ms_30_Quad_'+str(q)
+        # matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_ms_30_Quad_'+str(q)
         t1 = time.time()
         zarr_group = zarr.open(matrix_path, mode='r')
         t2 = time.time()
@@ -457,7 +486,7 @@ def main():
             time_f=time.time()
             st.write(f'{time_f-time_i:.2f}')
 
-        if st.checkbox("Cluster with Matrix Similarity Distance"):
+        if st.checkbox("Cluster with Matrix Similarity Distance 2"):
             dic_cluster_ski_ms = st.session_state["dic_cluster_ski_ms"]
             cluster_ms_df = snic_centroid_df.loc[:,('label', 'centroid-0','centroid-1')]
             list_cluster_ms=[]
@@ -775,9 +804,13 @@ def main():
         n_opt_key_ms = st.session_state["n_opt_key_ms"]
         matrix_sim_sel = st.session_state["matrix_sim"] 
         matrix_sim_sel_2 = st.session_state["matrix_sim_2"] 
+        dates = st.session_state['dates']
+        
         id = st.session_state["id"]
 
         cluster_keys = list(dic_cluster_ski_ms.keys())
+        
+        n_key_ms_sel = n_opt_key_ms
         n_key_ms_sel = st.selectbox(
             "Select number of Clusters",
             cluster_keys, 
@@ -785,12 +818,12 @@ def main():
             #key='quad' 
             #on_change=on_quad_change,  # Call the function when the value changes
             )
-        col_name = 'cluster_ms_' + n_key_ms_sel
+        # col_name = 'cluster_ms_' + n_key_ms_sel
+        col_name = 'cluster_ms_' + n_key_ms_sel + '_ClaraMS2'
         ncols=4
-        st.write(f'ncols = {ncols}, {n_key_ms_sel}')
+        # st.write(f'ncols = {ncols}, {n_key_ms_sel}')
 
         sh_sim_clusters = st.checkbox(f'Show Similarity histogram/heatmap for each cluster of {n_key_ms_sel}')
-
         if sh_sim_clusters:
             if 'n_opt_df' not in locals():     
                 st.write('n_opt_df nao existe')       
@@ -803,7 +836,8 @@ def main():
 
             st.write(n_opt_df.head(2))    
 
-            col_name = 'cluster_ms_' + n_key_ms_sel
+            # col_name = 'cluster_ms_' + n_key_ms_sel
+            col_name = 'cluster_ms_' + n_key_ms_sel + '_ClaraMS2'
 
             list_clusters = n_opt_df[col_name].unique()
             list_clusters.sort()
@@ -834,7 +868,135 @@ def main():
                 plot_hist_cluster_n(clustern, n_opt_df, col_name, matrix_sim_sel_2 )
                 plot_heatmap_cluster_n(clustern, n_opt_df, col_name, matrix_sim_sel_2 )
                 
+        sh_perc_clusters = st.checkbox(f'Show percentils for cluster {n_key_ms_sel} of {col_name}')
+        if sh_perc_clusters:
+            intervalo_perc = {}
+            percentils = [2.5,5,10,25,50,75,90,95,97.5]
+            intervalo_perc[95] = [2.5,50,97.5]
+            intervalo_perc[90] = [5,50,95]
+            intervalo_perc[80] = [10,50,90]
+            
 
+            if 'n_opt_df' not in locals():     
+                st.write('n_opt_df nao existe')       
+                n_opt_df = snic_centroid_df.loc[:,('label', 'centroid-0','centroid-1', 'coords')]
+            n_opt_df_columns = n_opt_df.columns
 
+            # st.write(n_opt_df_columns) 
+            # st.write(n_opt_df.head(2))    
+            if col_name not in n_opt_df.columns:
+                n_opt_df[col_name] = dic_cluster_ski_ms[n_key_ms_sel]
+                        
+            with st.expander("Settings for percentils"):
+                col1, col2 = st.columns(2)
+                with col1:
+                    intPerc = st.selectbox(
+                        "Select percentils interval",
+                        [80,90,95], 
+                        index=1
+                        # cluster_keys, 
+                        # index=cluster_keys.index(n_opt_key_ms)#,
+                        #key='quad' 
+                        #on_change=on_quad_change,  # Call the function when the value changes
+                        )
+                
+                sh_all_perc = st.checkbox(f'Show all percentils for cluster {n_key_ms_sel} of {col_name}')
+                sh_int_perc = st.checkbox(f'Show percentils interval for cluster {n_key_ms_sel} of {col_name}')
+                sh_samp_perc = st.checkbox(f'Show sample TS and percentils for cluster {n_key_ms_sel} of {col_name}')
+            
+            # st.write(n_opt_df.head(2))    
+
+            # gen df with TSs
+            if "dic_df_ts" not in st.session_state:
+                dic_df_ts = {}
+                               
+                band = 'NDVI' # depois colocar para ser selecionado
+                band_img_file_to_load = [x for x in band_tile_img_files if band in x.split('/')[-1]]
+                dic_df_ts = gen_TSdF(band_img_file_to_load, [quad], dates, band='NDVI')
+
+                st.session_state["dic_df_ts"] = dic_df_ts
+                # st.write(f'not in session_state:{dic_df_ts.keys()}')
+            else:
+                dic_df_ts = st.session_state["dic_df_ts"]
+                # st.write(dic_df_ts.keys())#s,dic_df_ts[quad].head(2))
+                # del st.session_state["dic_df_ts"]
+               
+            # st.write(dic_df_ts[quad].head(2))
+
+            #gen df percentils for n_opt
+            if "dic_df_percentils" not in st.session_state:
+                dic_df_percentils = {}
+                t1 = time.time()                               
+                dic_df_percentils[n_key_ms_sel] = gen_df_percentils(n_opt_df, dic_df_ts[quad], col_name, percentils)
+                t2 = time.time()
+                st.session_state["dic_df_percentils"] = dic_df_percentils
+                # st.write(f'df_percentils not in session_state:{dic_df_percentils.keys()}, t2-t1={t2-t1:.2f}')
+            else:
+                dic_df_percentils = st.session_state["dic_df_percentils"]
+
+                if n_key_ms_sel not in dic_df_percentils:
+                    t1 = time.time()                               
+                    dic_df_percentils[n_key_ms_sel] = gen_df_percentils(n_opt_df, dic_df_ts[quad], col_name, percentils)
+                    t2 = time.time()                               
+                    st.session_state["dic_df_percentils"] = dic_df_percentils
+                
+                # st.write(f't2-t1={t2-t1:.2f} {dic_df_percentils.keys()}')#s,dic_df_ts[quad].head(2))
+                # del st.session_state["dic_df_ts"]
+                # st.write(f't2-t1={t2-t1:.2f}')#s,dic_df_ts[quad].head(2))
+            # st.write(dic_df_percentils[n_key_ms_sel].head(2))
+
+            # sh_all_perc = st.checkbox(f'Show all percentils for cluster {n_key_ms_sel} of {col_name}')
+            if sh_all_perc:
+                fig0 = plot_TS_perc_clusters(dic_df_percentils[n_key_ms_sel], col_name=col_name )
+                st.plotly_chart(fig0)
+            
+            # sh_int_perc = st.checkbox(f'Show percentils interval for cluster {n_key_ms_sel} of {col_name}')
+            if sh_int_perc:
+                figInt = plot_TS_perc_clusters(dic_df_percentils[n_key_ms_sel], percentiles=intervalo_perc[intPerc], col_name=col_name )
+                st.plotly_chart(figInt)
+
+            # sh_samp_perc = st.checkbox(f'Show sample TS and percentils for cluster {n_key_ms_sel} of {col_name}')
+            if sh_samp_perc:
+                n = int(n_key_ms_sel.split('_')[0])
+                # st.write(f'n = {n}')
+                k_list = list(range(n))
+                grouped_df = n_opt_df.groupby(col_name).agg({
+                                                            "num_pixels": "sum",   # Sum num_pixels
+                                                            "label": list          # Collect label values in a list
+                                                            }).reset_index()
+                k_min = grouped_df.loc[grouped_df['num_pixels'].idxmin()][col_name]
+                k_max = grouped_df.loc[grouped_df['num_pixels'].idxmax()][col_name]
+                
+                # st.write(grouped_df.loc[grouped_df['num_pixels'].idxmin()])
+                # st.write (f'k_min = {k_min}, k_max = {k_max}, col_name = {col_name}')
+                with st.expander(f"Settings for sample of {n_key_ms_sel}"):
+                    c1, c2 = st.columns(2)
+                    
+                    with c1:
+                        k = st.selectbox(
+                            f"Select one group of {n_key_ms_sel}",
+                            k_list, 
+                            index = k_list.index(k_min),
+                            key=f"select_k_{n_key_ms_sel}"  # Unique key to avoid conflicts
+                            # cluster_keys, 
+                            # index=cluster_keys.index(n_opt_key_ms)#,
+                            #key='quad' 
+                            #on_change=on_quad_change,  # Call the function when the value changes
+                            )
+                    # with c2:
+                        n_samples = st.number_input("Num of samples", min_value=0, max_value=100, value=40, step=1, key=f"samples_{n_key_ms_sel}")
+                        rd_state = st.number_input("Random state", min_value=0,value=42, step=1, key=f"rdstate_{n_key_ms_sel}")
+                # k=8
+                merged_df = gen_groupClusterTS_df(n_opt_df, dic_df_ts[quad], col_name, k)
+                # num_samples = 40  # Adjust the number of samples
+                sampled_df = merged_df.sample(n=min(n_samples, len(merged_df)), random_state=rd_state)
+                filter_perc_df = dic_df_percentils[n_key_ms_sel].loc[dic_df_percentils[n_key_ms_sel][col_name] == k]
+                # filter_perc_df.head(2)
+                title = f'Randomly selected rows and Percentil for k={k} of {col_name}'
+                
+                figSample = plot_TS_sel(sampled_df, title, dates, yaxis='NDVI', df_percentile=filter_perc_df, percentiles=intervalo_perc[intPerc] )
+                st.plotly_chart(figSample)
+            
+            
 if __name__ == "__main__":
     main()

@@ -6,8 +6,11 @@
 #           clusterizacao da segmentação de 1/4 do tile, nao juntar os 
 #           quadrantes
 # 20241215: passagem de arqumentos para o programa
-# 20250226: inclusao de arg md para selecionar a matriz de sim para clusterizar, se com max distancias
-#           ou a gerada com n_opt até max n
+# 20250226: inclusao de arg md para selecionar o tipo de matriz de sim para clusterizar, 
+#           se com max distancias ou a gerada com n_opt até max n
+# 20250406: inclusao do argumento sm to read similarity matriz from simple cluster or
+#            with similarity matriz 2
+#20250529: inclusao de argumento pfi pca_fullImg para usar a matriz de similaridade do pca da imagem full
 import os
 import gc
 import time
@@ -66,10 +69,14 @@ parser.add_argument("-pd", '--process_time_dir', type=str, help="Dir para df com
 # parser.add_argument("-p", '--padrao', type=str, help="Filtro para o diretorio ", default='*')
 parser.add_argument("-k", '--knn', type=str, help="Use KNN", default=False)
 parser.add_argument("-md", '--max_dist_cotov', type=int, help="Sel os clusters pela dist cotovelo ou do n_opt em diante", default=1)
+parser.add_argument("-sm", '--sim_matrix', type=int, help="sim matrix number to cluster", default='')
+parser.add_argument("-pfi", '--pca_fullImg', type=int, help="usar pca da imagem full", default=0 )
 args = parser.parse_args()
 
 base_dir = '/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/'
-# base_dir = args.base_dir
+if args.base_dir: 
+    base_dir = args.base_dir
+    print (f'base_dir: {base_dir}') 
 save_etapas_dir = base_dir + args.save_dir if base_dir else args.save_dir + args.name_img +'/'
 # tif_dir = base_dir + args.tif_dir if base_dir else args.tif_dir
 read_quad = args.quadrante 
@@ -77,6 +84,7 @@ log_dir = base_dir + args.log_dir if base_dir else args.log_dir
 name_img = args.name_img
 process_time_dir = base_dir + args.process_time_dir
 sh_print = args.sh_print
+pca_fullImg = args.pca_fullImg
 # n_components = args.num_components
 # img_dir = args.image_dir
 # padrao = args.padrao
@@ -84,6 +92,8 @@ KNN = args.knn
 # indica o tipo de selecao dos clusters que serao usados na matriz de similaridade, se por distancia
 # ou considerar todos a partir do n_opt
 MaxDist = args.max_dist_cotov
+# indica se vai usar a primeira ou segunda matrix de similaridade
+sm = args.sim_matrix
 
 a = datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')
 t = datetime.datetime.now().strftime('%Y%m%d_%H%M_')
@@ -108,15 +118,27 @@ proc_dic[ri]['etapa'] = 'cluster with distance matriz'
 #read the sim matrix s
 # matrix_path = base_dir + '/spark_pca_matrix_sim/matrix_similarity_npmem_job'
 # KNN=0  #passado por args
+# read matrix sim from zarr for clustering
 if KNN:
     matrix_path = base_dir + 'data/tmp/spark_pca_matrix_sim/matrix_similarity_npmem_job_knn'
 else:
     # matrix_path = base_dir + 'data/tmp/spark_pca_matrix_sim/matrix_similarity_npmem_job'
     # matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_Quad_'+str(read_quad)
-    if MaxDist:
-        matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_Quad_'+str(read_quad)
+    if pca_fullImg:
+        path_matrix_sim = save_etapas_dir + 'spark_pca_matrix_sim/PCAFullImg/'
     else:
-        matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_30_Quad_'+str(read_quad)
+        path_matrix_sim = save_etapas_dir + 'spark_pca_matrix_sim/'
+
+    if MaxDist:
+        if sm == 2: # read sim matrix(2) from cluster using sim matrix 
+            # matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_ms_Quad_'+str(read_quad)
+            matrix_path = path_matrix_sim + 'matrix_similarity_npmem_job_ms_Quad_'+str(read_quad)
+        else:   # read sim matrix from cluster of simple cluster
+            # matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_Quad_'+str(read_quad)
+            matrix_path = path_matrix_sim + 'matrix_similarity_npmem_job_Quad_'+str(read_quad)
+    else:
+        # matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_30_Quad_'+str(read_quad)
+        matrix_path = path_matrix_sim + 'matrix_similarity_npmem_job_30_Quad_'+str(read_quad)
 
 
 t1 = time.time()
@@ -163,19 +185,22 @@ print (list(zarr_group.array_keys()))
 # if 'matrix_dist_sel' in list(zarr_group.array_keys()):
 #     print (f'2.0 matrix_dist_sel in zarr_group and created there') if sh_print else None
 
-if 'matrix_dist_sel' not in list(zarr_group.array_keys()):
-    print (f'2.0 matrix_dist_sel not in zarr_group and created there') if sh_print else None
-    logger.info(f'2.0 matrix_dist_sel not in zarr_group and created there')
+mat_dist_name = 'matrix_dist_sel2' if sm == 2 else 'matrix_dist_sel'
+print (f'2.0 mat_dist_name: {mat_dist_name}') if sh_print else None
+
+if mat_dist_name not in list(zarr_group.array_keys()):
+    print (f'2.0 {mat_dist_name} not in zarr_group and created there') if sh_print else None
+    logger.info(f'2.0 {mat_dist_name} not in zarr_group and created there')
     # del zarr_group['matrix_dist_sel']  # Remove o dataset existente
 
     matrix_dist_sel = zarr_group.create_dataset(
-        'matrix_dist_sel', 
+        mat_dist_name, 
         shape=matrix_sim_sel.shape, 
         dtype=matrix_sim_sel.dtype
     )
 
 t1 = time.time()
-matrix_dist_sel = zarr_group['matrix_dist_sel']
+matrix_dist_sel = zarr_group[mat_dist_name]
 t2 = time.time()
 # print (f'{a}: 2.1 Tempo para create matrix de distancia: {(t2-t1)}, {(t2-t1)/60}')
 print (f'{a}: 2.1 Tempo para read empty matrix de distancia: {(t2-t1):.2f}, {(t2-t1)/60:.2f}') if sh_print else None
@@ -185,7 +210,7 @@ logger.info(f'2.1.1 matrix_dist_sel.shape: {matrix_dist_sel.shape}, {matrix_dist
 
 ri+=1
 proc_dic[ri]={} if ri not in proc_dic else None
-proc_dic[ri]['etapa'] = 'cluster with distance matriz'
+proc_dic[ri]['etapa'] = f'cluster with distance matriz {sm}'
 proc_dic[ri]['subetapa'] = 'read empty distance matrix'
 proc_dic[ri]['tempo'] = t2-t1
 
@@ -213,7 +238,7 @@ logger.info(f'{a}: 2.2 Tempo para converter matrix de distancia para float32: {(
 
 ri+=1
 proc_dic[ri]={} if ri not in proc_dic else None
-proc_dic[ri]['etapa'] = 'cluster with distance matriz'
+proc_dic[ri]['etapa'] = f'cluster with distance matriz {sm}'
 proc_dic[ri]['subetapa'] = 'gen distance matrix'
 proc_dic[ri]['tempo'] = t2-t1+t2_1
 proc_dic[ri]['size'] = matrix_dist_sel.shape
@@ -253,7 +278,7 @@ for n in range (2, n_clusters+1):
         # print (f'3.1 Cluster Clara, tempo de execucao para {n} {rd}: {t3-t2:.2f}s {(t3-t2)/60:.2f}m')
         ri+=1
         proc_dic[ri]={} if ri not in proc_dic else None
-        proc_dic[ri]['etapa'] = 'cluster with distance matrix'
+        proc_dic[ri]['etapa'] = f'cluster with distance matriz {sm}'
         proc_dic[ri]['subetapa'] = f'Cluster Clara para {n} {rd}'
         proc_dic[ri]['tempo'] = t3-t2   
 
@@ -275,7 +300,7 @@ for n in range (2, n_clusters+1):
     
     ri+=1
     proc_dic[ri]={} if ri not in proc_dic else None
-    proc_dic[ri]['etapa'] = 'cluster with distance matrix'
+    proc_dic[ri]['etapa'] = f'cluster with distance matriz {sm}'
     proc_dic[ri]['subetapa'] = f'Cluster Clara para {n}'
     proc_dic[ri]['tempo'] = t4-t1   
 
@@ -285,7 +310,7 @@ logger.info(f'3.2 Tempo de execucao total Clara: {time_f-time_i:.2f}')
 
 ri+=1
 proc_dic[ri]={} if ri not in proc_dic else None
-proc_dic[ri]['etapa'] = 'cluster with distance matriz'
+proc_dic[ri]['etapa'] = f'cluster with distance matriz {sm}'
 proc_dic[ri]['subetapa'] = 'Clara execution'
 proc_dic[ri]['tempo'] = time_f-time_i
 
@@ -464,10 +489,20 @@ t1=time.time()
 if KNN:
     file_to_save = base_dir + 'data/tmp/pca_snic_cluster/clara_ms_knn_'+str(id)+'_20241117.pkl'
 else:
-    if MaxDist:
-        file_to_save = save_etapas_dir + 'pca_snic_cluster/clara_ms_'+str(id)+'_quad_'+str(read_quad)+'.pkl'
+    if pca_fullImg:
+        d_name = save_etapas_dir + 'pca_snic_cluster/PCAFullImg/'
     else:
-        file_to_save = save_etapas_dir + 'pca_snic_cluster/clara_ms_'+str(id)+'_30_quad_'+str(read_quad)+'.pkl'
+        d_name = save_etapas_dir + 'pca_snic_cluster/'
+    if MaxDist:
+        if sm==2:
+            # file_to_save = save_etapas_dir + 'pca_snic_cluster/clara_ms'+str(sm)+'_'+str(id)+'_quad_'+str(read_quad)+'.pkl'
+            file_to_save = d_name + 'clara_ms'+str(sm)+'_'+str(id)+'_quad_'+str(read_quad)+'.pkl'
+        else:    
+            # file_to_save = save_etapas_dir + 'pca_snic_cluster/clara_ms_'+str(id)+'_quad_'+str(read_quad)+'.pkl'
+            file_to_save = d_name + 'clara_ms_'+str(id)+'_quad_'+str(read_quad)+'.pkl'
+    else:
+        # file_to_save = save_etapas_dir + 'pca_snic_cluster/clara_ms_'+str(id)+'_30_quad_'+str(read_quad)+'.pkl'
+        file_to_save = d_name + 'clara_ms_'+str(id)+'_30_quad_'+str(read_quad)+'.pkl'
 
 
 save_to_pickle(obj_dic, file_to_save)
@@ -480,7 +515,7 @@ del obj_dic
 gc.collect()
 ri+=1
 proc_dic[ri]={} if ri not in proc_dic else None
-proc_dic[ri]['etapa'] = 'cluster with distance matriz'
+proc_dic[ri]['etapa'] = f'cluster with distance matriz {sm}'
 proc_dic[ri]['subetapa'] = 'salvar Clara results'
 proc_dic[ri]['tempo'] = t2-t1
 tf=time.time()
@@ -490,7 +525,7 @@ logger.info(f'{a}: Tempo de execução do {nome_prog}: {tf-ti:.2f} s {(tf-ti)/60
 
 ri+=1
 proc_dic[ri]={} if ri not in proc_dic else None
-proc_dic[ri]['etapa'] = 'cluster with distance matriz'
+proc_dic[ri]['etapa'] = f'cluster with distance matriz {sm}'
 proc_dic[ri]['subetapa'] = f'{nome_prog} time execution total'
 proc_dic[ri]['tempo'] = tf-ti
 

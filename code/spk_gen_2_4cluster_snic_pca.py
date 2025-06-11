@@ -10,9 +10,9 @@
 # 20250131: gerado copia do spk_gen2_2cluster_snic_pa.py 
 #         : para gerar matriz de similaridade do cluster feito com a matriz de 
 #         : similaridade gerada a partir do cluster simples, 
-# 20250226: gerado copia do spk_gen2_2cluster_snic_pa.py , faz selecao do clusters que serao \
+# 20250226: gerado copia do spk_gen2_2cluster_snic_pa.py , faz selecao dos clusters que serao \
 #           considerados na construcao da matriz de similaridade se pelas maiores distancias do cotovelo
-#           ou tods a partir do n_opt
+#           ou todos a partir do n_opt
 
 import os
 import gc

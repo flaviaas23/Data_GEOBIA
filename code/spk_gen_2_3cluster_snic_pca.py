@@ -8,8 +8,14 @@
 #           quadrantes
 # 20241215: passagem de argumentos para o programa
 # 20250131: gerado copia do spk_gen2cluster_snic_pa.py 
-#         : para fazer matriz de similaridade do cluster feito com a matriz de 
-#         : similaridade gerada a partir do cluster simples
+#         : para fazer MS2 - matriz de similaridade do cluster feito com 
+#         : a MS1 (matriz de similaridade gerada a partir do cluster simples)
+# 20250530: inclusao de argumento pfi pca_fullImg para usar a matriz de similaridade do pca da imagem full
+#         : inclusao de arg md para selecionar o tipo de matriz de sim para clusterizar, 
+#         : se com max distancias ou a gerada com n_opt até max n
+#         : inclusao de arg md para selecionar o tipo de matriz de sim para clusterizar, 
+#           se com max distancias ou a gerada com n_opt até max n
+
 import os
 import gc
 import time
@@ -25,27 +31,27 @@ from tqdm import tqdm
 #from sklearn_extra.cluster import CLARA
 import zarr
 
-from sklearn.metrics import silhouette_samples, silhouette_score, pairwise_distances_chunked
-from sklearn.preprocessing import LabelEncoder
-import functools
+# from sklearn.metrics import silhouette_samples, silhouette_score, pairwise_distances_chunked
+# from sklearn.preprocessing import LabelEncoder
+# import functools
 from scipy.sparse import issparse
 
 import matplotlib.pyplot as plt
-from matplotlib import gridspec
-from mpl_toolkits.axes_grid1 import make_axes_locatable
-from matplotlib.ticker import MaxNLocator, FormatStrFormatter
-from matplotlib.colorbar import Colorbar
+# from matplotlib import gridspec
+# from mpl_toolkits.axes_grid1 import make_axes_locatable
+# from matplotlib.ticker import MaxNLocator, FormatStrFormatter
+# from matplotlib.colorbar import Colorbar
 
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
+# import plotly.express as px
+# import plotly.graph_objects as go
+# from plotly.subplots import make_subplots
 
-from functions.functions_segmentation import gen_coords_snic_df
+# from functions.functions_segmentation import gen_coords_snic_df
 from functions.functions_pca import save_to_pickle, cria_logger, update_procTime_file
 from functions.functions_cluster import optimal_number_of_clusters, gen_matrix_sim_np, \
-                                        gen_matrix_sim_npmem, calc_inter_intra_cluster,\
-                                        read_snic_centroid, read_qs_gen_snic_centroid,\
-                                        gen_arrayToCluster
+                                        gen_matrix_sim_npmem, calc_inter_intra_cluster#,\
+                                        # read_snic_centroid, read_qs_gen_snic_centroid,\
+                                        # gen_arrayToCluster
 
 ti = time.time()
 
@@ -67,10 +73,16 @@ parser.add_argument("-pd", '--process_time_dir', type=str, help="Dir para df com
 # parser.add_argument("-dsi", '--image_dir', type=str, help="Diretorio da imagem pca", default='data/tmp/spark_pca_images/')
 # parser.add_argument("-p", '--padrao', type=str, help="Filtro para o diretorio ", default='*')
 parser.add_argument("-k", '--knn', type=str, help="Use KNN", default=False)
+parser.add_argument("-md", '--max_dist_cotov', type=int, help="Sel os clusters pela dist cotovelo ou do n_opt em diante", default=1)
+parser.add_argument("-pfi", '--pca_fullImg', type=int, help="usar pca da imagem full", default=0 )
+parser.add_argument("-sm", '--sim_matrix', type=int, help="calculate sim matrix number to cluster", default=2)
 args = parser.parse_args()
 
 base_dir = '/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/'
 # base_dir = args.base_dir
+if args.base_dir: 
+    base_dir = args.base_dir
+    print (f'base_dir: {base_dir}') 
 save_etapas_dir = base_dir + args.save_dir if base_dir else args.save_dir + args.name_img +'/'
 # tif_dir = base_dir + args.tif_dir if base_dir else args.tif_dir
 read_quad = args.quadrante 
@@ -83,6 +95,12 @@ print (f"sh_print {sh_print}")
 # img_dir = args.image_dir
 # padrao = args.padrao
 KNN = args.knn
+# indica o tipo de selecao dos clusters que serao usados na matriz de similaridade, se por distancia
+# ou considerar todos a partir do n_opt
+MaxDist = args.max_dist_cotov
+pca_fullImg = args.pca_fullImg
+# indica se vai usar a primeira ou segunda matrix de similaridade
+sm = args.sim_matrix
 
 a = datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')
 t = datetime.datetime.now().strftime('%Y%m%d_%H%M_')
@@ -103,7 +121,7 @@ proc_dic = {}
 proc_dic[ri]={} if ri not in proc_dic else None
 proc_dic[ri]['etapa'] = f'Gen similarity matriz from Cluster segmented image for quad {read_quad}'
 
-# 1. read snic df
+# 1. read snic df cluster clara with matrix sim to gen matrix sim 2
 id=0
 t1 = time.time()
 # file_to_open = base_dir + 'pca_snic_cluster/clara_0.pkl
@@ -112,7 +130,12 @@ if KNN:
     file_to_open = base_dir + 'data/tmp/pca_snic_cluster/clara_knn'+str(id)+'.pkl'
 else:
     # file_to_open = base_dir + 'data/tmp/pca_snic_cluster/clara_'+str(id)+'.pkl'
-    d_name = save_etapas_dir + 'pca_snic_cluster/'
+    # d_name = save_etapas_dir + 'pca_snic_cluster/'
+    if pca_fullImg:
+        d_name = save_etapas_dir + 'pca_snic_cluster/PCAFullImg/'
+    else:
+        d_name = save_etapas_dir + 'pca_snic_cluster/'
+
     file_to_open = d_name+'clara_ms_'+str(id)+'_quad_'+str(read_quad)+'.pkl'
 
 with open(file_to_open, 'rb') as handle:    
@@ -170,20 +193,30 @@ dist_copy.sort(reverse=True)
 print (f'{a}: distancias: {dist_copy}') if sh_print else None
 logger.info(f'distancias: {dist_copy}')
 
-ind_opts_ms=[]
-keys_n_opt_ms=[]
-max_ind_ms = round((n_opt_ski_ms-2)*1.5)          # 
-for x in dist_copy[:max_ind_ms]:
-    ind = distances_ms.index(x)
-    #print (x, distances.index(x), keys_ski[ind])
-    ind_opts_ms.append(distances_ms.index(x))
-    keys_n_opt_ms.append(keys_ski_ms[ind])
+if MaxDist:
+    #seleciona os clusters que tiveram as maiores distancias de acordo com o grafico do cotovelo
+ 
+    ind_opts_ms=[]
+    keys_n_opt_ms=[]
+    max_ind_ms = round((n_opt_ski_ms-2)*1.5)          # 
+    for x in dist_copy[:max_ind_ms]:
+        ind = distances_ms.index(x)
+        #print (x, distances.index(x), keys_ski[ind])
+        ind_opts_ms.append(distances_ms.index(x))
+        keys_n_opt_ms.append(keys_ski_ms[ind])
 
-a = datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-print (f'{a}: 3.1 max_ind_ms: {max_ind_ms =}\nind_opts_ms: {ind_opts_ms}\nkeys_n_opt_ms: {keys_n_opt_ms}') if sh_print else None  
-logger.info(f'3.1 max_ind_ms: {max_ind_ms =}\nind_opts_ms: {ind_opts_ms}\nkeys_n_opt_ms: {keys_n_opt_ms}')  
+    a = datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+    print (f'{a}: 3.1 max_ind_ms: {max_ind_ms =}\nind_opts_ms: {ind_opts_ms}\nkeys_n_opt_ms: {keys_n_opt_ms}') if sh_print else None  
+    logger.info(f'3.1 max_ind_ms: {max_ind_ms =}\nind_opts_ms: {ind_opts_ms}\nkeys_n_opt_ms: {keys_n_opt_ms}')  
 
-k_selected = keys_n_opt_ms
+    k_selected = keys_n_opt_ms
+
+else:
+    #seleciona todos os n's a partir do n_opt até o final
+    n_opt_ind_ms = n_opt_ski_ms - 2
+    k_selected = keys_ski_ms[n_opt_ind_ms:]
+
+
 print (f'{a}: 3.2 k_selected: {k_selected}') if sh_print else None  
 logger.info (f'{a}: 3.2 k_selected: {k_selected}')  
 
@@ -325,8 +358,24 @@ if KNN:
     # matrix_path = base_dir + 'data/tmp/spark_pca_matrix_sim/matrix_similarity_npmem_job_knn'
     matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_knn'
 else:
-    # matrix_path = base_dir + 'data/tmp/spark_pca_matrix_sim/matrix_similarity_npmem_job'
-    matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_ms_Quad_'+str(read_quad)
+    
+    if pca_fullImg:
+        path_matrix_sim = save_etapas_dir + 'spark_pca_matrix_sim/PCAFullImg/'
+    else:
+        path_matrix_sim = save_etapas_dir + 'spark_pca_matrix_sim/'
+
+    if MaxDist:
+        if sm == 2: # save sim matrix(2) from cluster using sim matrix (1) from simple cluster
+            # matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_ms_Quad_'+str(read_quad)
+            matrix_path = path_matrix_sim + 'matrix_similarity_npmem_job_ms_Quad_'+str(read_quad)
+        else:   # save sim matrix from cluster of simple cluster
+            # matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_Quad_'+str(read_quad)
+            matrix_path = path_matrix_sim + 'matrix_similarity_npmem_job_Quad_'+str(read_quad)
+    else:    
+        # matrix_path = base_dir + 'data/tmp/spark_pca_matrix_sim/matrix_similarity_npmem_job'
+        # matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_ms_Quad_'+str(read_quad)
+        matrix_path = path_matrix_sim + 'matrix_similarity_npmem_job_ms_Quad_'+str(read_quad)
+
 print (f'{a}: 7.6 matrix sim npmem com zarr dir: {matrix_path}') if sh_print else None 
 logger.info(f'7.6 matrix sim npmem com zarr dir: {matrix_path}') 
 t1 = time.time()

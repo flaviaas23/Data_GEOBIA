@@ -59,6 +59,7 @@ def optimal_number_of_clusters(wcss,min_cl, max_cl, dist=False):
         denominator = math.sqrt((y2 - y1)**2 + (x2 - x1)**2)
         distances.append(numerator/denominator)
         #20250221: como retorna o indice do max nao soma min_cl
+        #          como os programas estao sub -2 deixei assim mesmo
     if dist:
         return distances.index(np.max(distances)) + min_cl, distances
     else:
@@ -136,7 +137,7 @@ def calc_inter_intra_cluster(arraybands_sel, dic_cluster, n_opt, metric = "eucli
     labels = le.fit_transform(dic_cluster[n_opt])
     n_samples = len(labels)
     label_freqs = np.bincount(labels)
-    print (f'n_opt = {n_opt} n_samples = {n_samples}, label_freqs = {label_freqs}')
+    print (f'metric = {metric} n_opt = {n_opt} n_samples = {n_samples}, labels = {np.unique(labels)},label_freqs = {label_freqs}') if sh_print else None
     # check_number_of_labels(len(le.classes_), n_samples)    
     # metric = "euclidean"  'precomputed' if arraybands_sel is a distance matrix
     kwds = {}    
@@ -144,16 +145,16 @@ def calc_inter_intra_cluster(arraybands_sel, dic_cluster, n_opt, metric = "eucli
     reduce_func = functools.partial(
         _silhouette_reduce, labels = labels, label_freqs = label_freqs
     )
-    print (f'arraybands_sel : {arraybands_sel}') if sh_print else None
+    # print (f'arraybands_sel : {arraybands_sel}') if sh_print else None
     results = zip(*pairwise_distances_chunked(arraybands_sel, reduce_func=reduce_func, **kwds))
     intra_clust_dists, inter_clust_dists = results
     #para obter a frequencia de cada label e fazer a media do intra
     #subtrai um pq o valor é a media de um pto com os outros pontos dentro de um mesmo
     # label. Qdo um label tem um ponto só causa 0/0 e retorna nan
     denom = (label_freqs-1).take(labels, mode="clip")
-    print (f'denom = {len(denom)}')#\nintra_clust_dists={len(intra_clust_dists)}')
+    print (f'denom = {len(denom)}, type denom = {type(denom)}')#\nintra_clust_dists={len(intra_clust_dists)}')
     #comentei em 20241216, pq estava dando erro qdo usado para fazer o calculo com
-    # a primeira clusterizacao, acho que o valor do inrta de cada ponto precisa ser 
+    # a primeira clusterizacao, acho que o valor do intra de cada ponto precisa ser 
     #dividido pela qtde de elementos do label para se ter a média da distancia do
     #ponto dentro do grupo
     if metric=='precomputed':
@@ -164,7 +165,12 @@ def calc_inter_intra_cluster(arraybands_sel, dic_cluster, n_opt, metric = "eucli
     print (f'intra {intra_clust_dists}') if sh_print else None
     df = pd.DataFrame({'label': labels, 'inter': inter_clust_dists, 'intra': intra_clust_dists })
     if metric=='euclidean':
-        df["intra"] = df["intra"] / label_freqs[df["label"] - 1]
+        #20250311: como o label começa em 0, acho que nao deve fazer -1 no valor do label
+        # df["intra"] = df["intra"] / label_freqs[df["label"] - 1]
+        df["intra"] = df["intra"] / (label_freqs[df["label"]]-1)
+        print (f'intra divided {label_freqs[df["label"]]-1}')
+        print (f'len df[intra] = {len(df["intra"])}, len labels_freqs -1 = {len(label_freqs[df["label"]]-1)}')
+        print (f'len labels_freqs = {len((label_freqs[df["label"]]-1))}, type label freqs ={type(label_freqs[df["label"]])}')
     return df
 
 
@@ -317,7 +323,9 @@ def gen_matrix_sim_npmem(n_opt, dic_cluster, tmp_dir, perc_min=0,
         del da_arr
         gc.collect()
     # Final division operation
-    matrix_sim[:] /= len(k_selected)
+    # matrix_sim[:] /= len(k_selected)
+    matrix_sim = matrix_sim[:]/len(k_selected)    
+
     time_fim = time.time()
     print (f'Tempo para gerar matrix sim: {(time_fim-time_ini):.2f}s, {(time_fim-time_ini)/60:.2f}m') 
     print(f'Type matrix: {type(matrix_sim)}') 
@@ -365,10 +373,10 @@ def gen_matrix_sim_np(n_opt, dic_cluster, perc_min=0, perc_max=1, k_selected=[],
         da_arr = np.array(dic_cluster[k])
         if (i==0):
             i+=1
-            matrix_sim = (da_arr[:, None] == da_arr[None, :]).astype(np.int16)
+            matrix_sim = (da_arr[:, None] == da_arr[None, :]).astype(np.int16) #20250312 estava int16
             #estava só com int, que é int64
             continue
-        matrix_sim = (da_arr[:, None] == da_arr[None, :]).astype(np.int16)+matrix_sim
+        matrix_sim = (da_arr[:, None] == da_arr[None, :]).astype(np.int16)+matrix_sim #20250312 estava int16
     matrix_sim=matrix_sim/len(k_selected)    
     time_fim = time.time()
     a = datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')
@@ -618,3 +626,73 @@ def hierarchical_clustering(distance_matrix, method='average'):
     # plt.show()
     
     return Z
+
+def gen_df_percentils(noptdf, df, col_name, percentiles='', sh_print=False):
+    # 1. Gera um df com os percentil's para todos os k's 
+    t1 = time.time()
+    clusters = sorted(noptdf[col_name].unique())
+    t2 = time.time()
+    # print (t2-t1, clusters)
+    percentiles = percentiles if percentiles else [2.5, 5, 10,25,50,75,90,95,97.5] 
+    print (percentiles) if sh_print else None  
+    result =[]
+    for k in clusters:
+        cluster_df = gen_groupClusterTS_df(noptdf, df, col_name, k)
+       
+        # Count unique labels and sum pixels for the cluster
+        num_labels = cluster_df["label"].nunique()  # Number of unique labels
+        # num_pixels = cluster_df["num_pixels"].sum() # Sum num_pixels for the cluster soma labels duplicados
+        num_pixels = cluster_df.drop_duplicates(subset="label")['num_pixels'].sum() # Sum num_pixels of unique labels for the cluster
+        date_columns = [col for col in cluster_df.columns if col.startswith("20")]  # Select date columns dynamically
+        # Calculate percentiles
+        for p in percentiles:
+            row = {
+                    col_name: k,
+                    "num_labels": num_labels,
+                    "num_pixels": num_pixels,
+                    "percentil": p
+                    }
+        
+            # Percentiles for each date column
+            for col in date_columns:
+                row[col] = np.percentile(cluster_df[col], p)
+                    
+            result.append(row)
+    df_percentils = pd.DataFrame(result)
+    del result
+    gc.collect()
+    t3 = time.time()
+    print (t3-t2) if sh_print else None
+    return df_percentils
+
+def gen_groupClusterTS_df(cluster_df, df_tif, col_name, k ):
+    '''
+    Gen df of a group (k) of cluster (col_name) with its pixels time series 
+    cluster_df: n_opt_df
+    col_name: cluster_column name
+    k: group of cluster to filter
+    '''
+    # k=52
+    filtered_df = cluster_df[(cluster_df[col_name] == k) ] #| (n_opt_df.index == 5781)
+    # print (filtered_df.shape)
+    
+    # filtered_df.head(2)
+
+    # Explode the 'coords' column (each list of coordinates becomes its own row)
+    filtered_df_exploded = filtered_df.explode("coords")
+    
+    # Create 'coords_0' and 'coords_1' by splitting the list into separate columns
+    filtered_df_exploded[["coords_0", "coords_1"]] = pd.DataFrame(filtered_df_exploded["coords"].tolist(), index=filtered_df_exploded.index)
+    
+    # Drop the original 'coords' column (optional)
+    filtered_df_exploded = filtered_df_exploded.drop(columns=["coords"])
+
+    
+    # Merge on coords_0 and coords_1, keeping only matching rows
+    merged_df = filtered_df_exploded.merge(df_tif, on=["coords_0", "coords_1"], how="inner")
+
+    del cluster_df, filtered_df, filtered_df_exploded
+    gc.collect()
+    
+    return merged_df
+    

@@ -5,6 +5,7 @@
 # 20241127: ajustado para incluir a criação do df com os tempos de processamento, 
 #           passagem dos parametros de configuração por argumentos 
 # 20241209: dividir a imagem por 4 e fazer o sdft por data
+# 20250505: Fazer a opcao de nao dividir em quadrantes: -q 9
 import os
 import gc
 import time
@@ -93,7 +94,7 @@ parser = argparse.ArgumentParser(description="Program segment image")
 parser.add_argument("-bd", '--base_dir', type=str, help="Diretorio base", default='')
 parser.add_argument("-sd", '--save_dir', type=str, help="Dir base para salvar saidas de cada etapa", default='data/tmp2/')
 parser.add_argument("-td", '--tif_dir', type=str, help="Dir dos tiffs", default='data/Cassio/S2-16D_V2_012014_20220728_/')
-parser.add_argument("-q", '--quadrante', type=int, help="Numero do quadrante da imagem [0-all,1,2,3,4]", default=1)
+parser.add_argument("-q", '--quadrante', type=int, help="Numero do quadrante da imagem [0-all,1,2,3,4,9]", default=1)
 parser.add_argument("-ld", '--log_dir', type=str, help="Dir do log", default='code/logs/')
 parser.add_argument("-i", '--name_img', type=str, help="Nome da imagem", default='S2-16D_V2_012014')
 parser.add_argument("-sp", '--sh_print', type=int, help="Show prints", default=1)
@@ -170,17 +171,18 @@ from pyspark.sql.functions import row_number
 
 # dates = ['20220728', '20220829', '20220830', '20220901', '20220902', '20220903']#, '20220904']
 band_img_files = band_tile_img_files
-i=0
-ini=0
+i = 0
+ini = 11
+print (f'dates: {dates}')
 
 #number of quadrants of image
 q_number =  4 #number of quadrants of image
 quadrants = [read_quad] if read_quad else range(1,q_number+1)
 # quadrants = [2,3,4] #para test
 
-for t in dates[ini:]:#['2023-09-28']:#dates[ini:]:
+for t in dates[ini:ini+1]:#['2023-09-28']:#dates[ini:]:
     # t='2023-09-28'
-    print (f'******************** {i}: {t} *******************') if sh_print else None
+    print (f'******************** {i}: {t} *******************') #if sh_print else None
     tt1 = time.time()
     # band_img_files = band_tile_img_files
     band_img_file_to_load = [x for x in band_img_files if t in x.split('/')[-1]]
@@ -211,15 +213,22 @@ for t in dates[ini:]:#['2023-09-28']:#dates[ini:]:
 
     for q in quadrants:
 
-        rowi, rowf, coli, colf = get_quadrant_coords(q, imgSize)
+        if q==9: #fazer para a imagem completa
+            rowi, rowf, coli, colf = 0, imgSize, 0, imgSize
+        else: #fazer para o quadrante especificado
+            rowi, rowf, coli, colf = get_quadrant_coords(q, imgSize)
+
         a = datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')
         print (f'{a}: Quadrante Q{q} {rowi}:{rowf} {coli}:{colf}') if sh_print else None
 
         #gerar a imagem tif do quadrante
         t1=time.time()
         image_band_dic_q={}
-        for x in bands:
-            image_band_dic_q[x] = image_band_dic[x][rowi:rowf, coli:colf]
+        if q==9: #fazer par a imagem completa
+            image_band_dic_q = image_band_dic
+        else:  #fazer para o quadrante q
+            for x in bands:
+                image_band_dic_q[x] = image_band_dic[x][rowi:rowf, coli:colf]
         t2 = time.time()
 
         img_bands = []
@@ -229,16 +238,18 @@ for t in dates[ini:]:#['2023-09-28']:#dates[ini:]:
         # img_bands = np.dstack([image_band_dic[x] for x in bands])
         # del image_band_dic
         # gc.collect()
-        t1=time.time()
-        perc_day_nan_q= check_perc_nan(image_band_dic_q, logger)
-        t2=time.time()
-        logger.info(f'Tempo para verificar percentual de nan no quadrante {q} dos tiffs: {t2-t1:.2f}s, {(t2-t1)/60:.2f}m')
-        logger.info(f'Percentual de nan no quadrante {q} dos tiffs: {perc_day_nan_q}%')
-        print (f'Percentual de nan no quadrante {q} tiffs {t}, imgSize= {image_band_dic_q[bands[0]].shape[0]}: {perc_day_nan_q}%') #if sh_print else None
+        if q != 9:
+            t1=time.time()
+            perc_day_nan_q= check_perc_nan(image_band_dic_q, logger)
+            t2=time.time()
+            logger.info(f'Tempo para verificar percentual de nan no quadrante {q} dos tiffs: {t2-t1:.2f}s, {(t2-t1)/60:.2f}m')
+            logger.info(f'Percentual de nan no quadrante {q} dos tiffs: {perc_day_nan_q}%')
+            print (f'Percentual de nan no quadrante {q} tiffs {t}, imgSize= {image_band_dic_q[bands[0]].shape[0]}: {perc_day_nan_q}%') #if sh_print else None
     
 
         del image_band_dic_q
         gc.collect()
+        spark._jvm.System.gc() #20250506 inclui 
 
         cols_name = [x+'_'+t for x in bands]
         logger.info(f'Columns names: {cols_name}')
@@ -275,6 +286,7 @@ for t in dates[ini:]:#['2023-09-28']:#dates[ini:]:
 
         del img_bands
         gc.collect()
+        spark._jvm.System.gc() #20250506 inclui 
 
         print (cols_name)  if sh_print else None
         a = datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')
@@ -294,9 +306,11 @@ for t in dates[ini:]:#['2023-09-28']:#dates[ini:]:
 
         t2 = time.time()
         logger.info(f'Tempo para criar spark sdft {t} for quad {q} {t2-t1}s, {(t2-t1)/60:2f}m')
+        print (f'Tempo para criar spark sdft {t} for quad {q} {t2-t1}s, {(t2-t1)/60:2f}m')
 
         del values
         gc.collect()
+        spark._jvm.System.gc() #20250506 incluí
 
         ri+=1
         proc_dic[ri]={} if ri not in proc_dic else None
@@ -345,7 +359,10 @@ for t in dates[ini:]:#['2023-09-28']:#dates[ini:]:
         # temp_path= base_dir + 'data/tmp'
         # sdfPath = temp_path + "spark_sdft_"+ t
         # sdfPath = save_etapas_dir + "spark_sdft_"+ t #
-        sdfPath = save_etapas_dir + "spark_sdft_"+ t +'/Quad_'+str(q) + '/' #20241209 incluido o Quad
+        if q==9: #fazer par a imagem completa
+            sdfPath = save_etapas_dir + "spark_sdft_"+ t +'/Full/' # 20250506 incluido o Full para img completa
+        else:
+            sdfPath = save_etapas_dir + "spark_sdft_"+ t +'/Quad_'+str(q) + '/' #20241209 incluido o Quad
         print (f'\n***** dir:  {sdfPath} em parquet') if sh_print else None
 
         a = datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')
@@ -381,7 +398,7 @@ for t in dates[ini:]:#['2023-09-28']:#dates[ini:]:
 
 
         logger.info(f'Tempo para salvar {t} em parquet {t2-t1:.2f}s {(t2-t1)/60:.2f}m')
-        print (f'Tempo para salvar {t} em parquet {t2-t1:.2f}s {(t2-t1)/60:.2f}m') if sh_print else None
+        print (f'Tempo para salvar {t} em parquet {t2-t1:.2f}s {(t2-t1)/60:.2f}m') #if sh_print else None
 
         ri+=1
         proc_dic[ri]={} if ri not in proc_dic else None
@@ -391,11 +408,12 @@ for t in dates[ini:]:#['2023-09-28']:#dates[ini:]:
 
         # i+=1
         # spark.stop()
-        print (f'fim {q} of {t}')
+        print (f'fim {q} of {t}: {t2-tt1:.2f} {(t2-tt1)/60:.2f}')
     
     del image_band_dic
     gc.collect()
-        
+    spark._jvm.System.gc() #20250506 inclui 
+
     i+=1
     tt2 = time.time()
     ri+=1

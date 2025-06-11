@@ -321,12 +321,13 @@ def check_perc_nan(image_band_dic, logger='', sh_print=0):
         # label_neg = set()
         # label_neg_indx=set()
         print (f'{b} count_day_nan = {count_day_nan}') if sh_print else None
-        logger.info(f'{b} count_day_nan = {count_day_nan}')
+        logger.info(f'{b} count_day_nan = {count_day_nan}') if logger else  None
         #min_b[b] = np.min(image_band_dic[b], where=~np.isnan(b), initial=10)
         #image_band_dic_norm[b]=image_band_dic[b].astype(float)/max_b
     print (f'count_day_nan = {count_day_nan}')
     logger.info(f'count_day_nan = {count_day_nan}') if logger else None
     perc_day_nan = (count_day_nan/(num_elemts*len(num_bands)))*100
+    print (f'count_day_nan %  = {perc_day_nan}') if sh_print else None
     logger.info(f'Function check_perc_nan end') if logger else  None
 
     return perc_day_nan
@@ -503,7 +504,10 @@ def gen_arr_from_img_band_wCoords(matrix, bands_name, ar_pos=0, sp=0, sh_print=0
     # ar_pos = 1 if coords in format [x,y] should be in a column of dft
     
     logger.info(f'Function gen_arr_from_img_band_wCoords begin') if logger else  None
-    ps.options.compute.ops_on_diff_frames = True
+    # é usado no pandas-on-Spark (pyspark.pandas, agora chamado pyspark.pandas ou apenas ps), 
+    # e serve para permitir operações entre DataFrames de diferentes origens (ou seja, 
+    # "frames diferentes"): 
+    # ps.options.compute.ops_on_diff_frames = True
 
     t1=time.time()
     # Get the shape of the matrix

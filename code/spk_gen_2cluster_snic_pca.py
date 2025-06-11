@@ -68,10 +68,14 @@ parser.add_argument("-pd", '--process_time_dir', type=str, help="Dir para df com
 # parser.add_argument("-p", '--padrao', type=str, help="Filtro para o diretorio ", default='*')
 parser.add_argument("-k", '--knn', type=str, help="Use KNN", default=False)
 parser.add_argument("-md", '--max_dist_cotov', type=int, help="Sel os clusters pela dist cotovelo ou do n_opt em diante", default=1)
+parser.add_argument("-pfi", '--pca_fullImg', type=int, help="usar pca da imagem full", default=0 )
 args = parser.parse_args()
 
 base_dir = '/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/'
-# base_dir = args.base_dir
+if args.base_dir: 
+    base_dir = args.base_dir
+    print (f'base_dir: {base_dir}') 
+
 save_etapas_dir = base_dir + args.save_dir if base_dir else args.save_dir + args.name_img +'/'
 # tif_dir = base_dir + args.tif_dir if base_dir else args.tif_dir
 read_quad = args.quadrante 
@@ -79,6 +83,8 @@ log_dir = base_dir + args.log_dir if base_dir else args.log_dir
 # name_img = args.name_img
 process_time_dir = base_dir + args.process_time_dir
 sh_print = args.sh_print
+pca_fullImg = args.pca_fullImg
+
 print (f"sh_print {sh_print}")
 # n_components = args.num_components
 # img_dir = args.image_dir
@@ -116,7 +122,10 @@ if KNN:
     file_to_open = base_dir + 'data/tmp/pca_snic_cluster/clara_knn'+str(id)+'.pkl'
 else:
     # file_to_open = base_dir + 'data/tmp/pca_snic_cluster/clara_'+str(id)+'.pkl'
-    d_name = save_etapas_dir + 'pca_snic_cluster/'
+    if pca_fullImg:
+        d_name = save_etapas_dir + 'pca_snic_cluster/PCAFullImg/'
+    else:
+        d_name = save_etapas_dir + 'pca_snic_cluster/'
     file_to_open = d_name+'clara_'+str(id)+'_quad_'+str(read_quad)+'.pkl'
 
 with open(file_to_open, 'rb') as handle:    
@@ -212,7 +221,10 @@ if SH_PLOT:
 id=0
 t1 = time.time()
 # pca_snic_dir = base_dir +'data/tmp/spark_pca_snic/' #20241215 commented
-pca_snic_dir = save_etapas_dir +'spark_pca_snic/' 
+if pca_fullImg:
+    pca_snic_dir = save_etapas_dir + 'spark_pca_snic/PCAFullImg/' #Quad_' + str(q) +'/'
+else:
+    pca_snic_dir = save_etapas_dir +'spark_pca_snic/' 
 # snic_centroid_df = read_snic_centroid(file_to_open, id=0, i='4.1')
 if KNN:
     #read snic_centroid_df
@@ -298,7 +310,10 @@ proc_dic[ri]['tempo'] = t2-t1
 id=0
 a = datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')
 t1=time.time()
-file_to_save = save_etapas_dir + 'pca_snic_cluster/clara_'+str(id)+'_InterIntra_quad_'+str(read_quad)+'.pkl'
+if pca_fullImg:
+    file_to_save = save_etapas_dir + 'pca_snic_cluster/PCAFullImg/clara_'+str(id)+'_InterIntra_quad_'+str(read_quad)+'.pkl'
+else:
+    file_to_save = save_etapas_dir + 'pca_snic_cluster/clara_'+str(id)+'_InterIntra_quad_'+str(read_quad)+'.pkl'
 save_to_pickle(obj_dic, file_to_save)
 t2=time.time()
 print (f'3.2 Tempo para salvar cluster clara ms Inter Intra info of distance matrix : {t2-t1:.2f}, {(t2-t1)/60:.2f}') if sh_print else None
@@ -398,7 +413,7 @@ logger.info(f'7.2 type elem: {type_elem}, size: {element_size}')
 # Número de elementos que cabem em um chunk de 100 MB
 n_elements_per_chunk = chunk_size_in_bytes // element_size
 
-# Assumindo chunks quadrados, calcule a dimensão de cada chu nk
+# Assumindo chunks quadrados, calcule a dimensão de cada chunk
 chunk_dim = int(np.sqrt(n_elements_per_chunk))
 print (f'{a}: 7.3 chunk_dim: {chunk_dim}') if sh_print else None
 logger.info(f'7.3 chunk_dim: {chunk_dim}')
@@ -420,10 +435,16 @@ if KNN:
     matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_knn'
 else:
     # matrix_path = base_dir + 'data/tmp/spark_pca_matrix_sim/matrix_similarity_npmem_job'
-    if MaxDist:
-        matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_Quad_'+str(read_quad)
+    if pca_fullImg:
+        path_matrix_sim = save_etapas_dir + 'spark_pca_matrix_sim/PCAFullImg/'
     else:
-        matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_30_Quad_'+str(read_quad)
+        path_matrix_sim = save_etapas_dir + 'spark_pca_matrix_sim/'
+    if MaxDist:
+        # matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_Quad_'+str(read_quad)
+        matrix_path = path_matrix_sim + 'matrix_similarity_npmem_job_Quad_'+str(read_quad)
+    else:
+        # matrix_path = save_etapas_dir + 'spark_pca_matrix_sim/matrix_similarity_npmem_job_30_Quad_'+str(read_quad)
+        matrix_path = path_matrix_sim + 'matrix_similarity_npmem_job_30_Quad_'+str(read_quad)
 
 print (f'{a}: 7.6 matrix sim npmem com zarr dir: {matrix_path}') if sh_print else None 
 logger.info(f'7.6 matrix sim npmem com zarr dir: {matrix_path}') 
@@ -468,4 +489,4 @@ update_procTime_file(proc_dic, time_file)
 # print (f'7.4 matrix sim np com pickle: {file_to_save}')
 
 print (f'{a}: 0. Fim {nome_prog} tempo total {tf-ti:.2f}') if sh_print else None
-logger.info(f'0. Fim {nome_prog} tempo total {tf-ti:.2f}') 
+logger.info(f'0. Fim {nome_prog} tempo total {tf-ti:.2f} s') 

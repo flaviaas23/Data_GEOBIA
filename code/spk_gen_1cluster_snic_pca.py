@@ -49,10 +49,14 @@ parser.add_argument("-pd", '--process_time_dir', type=str, help="Dir para df com
 # parser.add_argument("-nc", '--num_components', type=int, help="number of PCA components", default=4 )
 parser.add_argument("-dsi", '--image_dir', type=str, help="Diretorio da imagem pca", default='data/tmp/spark_pca_images/')
 parser.add_argument("-p", '--padrao', type=str, help="Filtro para o diretorio ", default='*')
+parser.add_argument("-pfi", '--pca_fullImg', type=int, help="usar pca da imagem full", default=0 )
 args = parser.parse_args()
 
 base_dir = '/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/'
-# base_dir = args.base_dir
+if args.base_dir: 
+    base_dir = args.base_dir
+    print (f'base_dir: {base_dir}') 
+
 save_etapas_dir = base_dir + args.save_dir if base_dir else args.save_dir + args.name_img +'/'
 # tif_dir = base_dir + args.tif_dir if base_dir else args.tif_dir
 read_quad = args.quadrante 
@@ -63,6 +67,7 @@ sh_print = args.sh_print
 # n_components = args.num_components
 img_dir = args.image_dir
 padrao = args.padrao
+pca_fullImg = args.pca_fullImg
 
 a = datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')
 t = datetime.datetime.now().strftime('%Y%m%d_%H%M_')
@@ -94,7 +99,10 @@ for q in range (1, q_number+1):
     q = read_quad if q_number == 1 else q
     # file_to_open = '/scratch/flavia/pca/pca_snic/n_110000_comp_2_snic_centroid_df_0.pkl'
     # pca_snic_dir = base_dir +'data/tmp/spark_pca_snic/'+'Quad_'+str(q)+'/'
-    pca_snic_dir = save_etapas_dir +'spark_pca_snic/'+'Quad_'+str(q)+'/'
+    if pca_fullImg:
+        pca_snic_dir = save_etapas_dir + 'spark_pca_snic/PCAFullImg/Quad_' + str(q) +'/'
+    else:
+        pca_snic_dir = save_etapas_dir +'spark_pca_snic/'+'Quad_'+str(q)+'/'
     file_to_open = f'{pca_snic_dir}quad{str(q)}_n_30000_comp_2_snic_centroid_df_0.pkl'
     print (f'file to open = {file_to_open}') if sh_print else None
     with open(file_to_open, 'rb') as handle:    
@@ -147,7 +155,10 @@ for q in range (1, q_number+1):
     t2 = time.time()
     # file_to_open = '/scratch/flavia/pca/pca_snic/n_110000_comp_2_snic_centroid_df_0.pkl'
     # pca_snic_dir = base_dir +'data/tmp/spark_pca_snic/'+'Quad_'+str(q)+'/'
-    pca_snic_dir = save_etapas_dir +'spark_pca_snic/Quad_'+str(q)+'/'
+    if pca_fullImg:
+        pca_snic_dir = save_etapas_dir + 'spark_pca_snic/PCAFullImg/Quad_' + str(q) +'/'
+    else:
+        pca_snic_dir = save_etapas_dir +'spark_pca_snic/Quad_'+str(q)+'/'
         #read segments to gen snic_coords_df
     # file_to_open = '/scratch/flavia/pca/pca_snic/n_110000_comp_2_snic_segments_0.pkl'
     file_to_open = f'{pca_snic_dir}quad{str(q)}_n_30000_comp_2_snic_segments_0.pkl'
@@ -273,7 +284,7 @@ snic_centroid_df = snic_centroid_df.dropna()
 t2 = time.time()
 a = datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')
 print (f'{a}: 3.3 Tempo drop rows with nan in snic_centroid_df: {t2-t1:.2f}s, {(t2-t1)/60:.2f}m') if sh_print else None
-print (f'{a}: 3.4 snic_centroid_df_nan shape:{snic_centroid_df.shape}') if sh_print else None
+print (f'{a}: 3.4 snic_centroid_df shape:{snic_centroid_df.shape}') if sh_print else None
 logger.info(f'3.3 Tempo drop rows with nan in snic_centroid_df: {t2-t1:.2f}s, {(t2-t1)/60:.2f}m') 
 logger.info(f'3.4 snic_centroid_df after dropna shape:{snic_centroid_df.shape}')
 
@@ -339,7 +350,10 @@ obj_dic = {
 }
 # file_to_save = base_dir + 'pca_snic_cluster/clara_'+str(id)+'.pkl'
 # file_to_save = base_dir + 'data/tmp/pca_snic_cluster/clara_'+str(id)+'.pkl' #20241213 commented
-d_name = save_etapas_dir + 'pca_snic_cluster/'
+if pca_fullImg:
+    d_name = save_etapas_dir + 'pca_snic_cluster/PCAFullImg/'
+else:
+    d_name = save_etapas_dir + 'pca_snic_cluster/'
 file_to_save = d_name+'clara_'+str(id)+'_quad_'+str(read_quad)+'.pkl'
 diretorio = Path(d_name)
 diretorio.mkdir(parents=True, exist_ok=True)

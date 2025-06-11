@@ -2,6 +2,8 @@
 # 20241001: Programa baixado do exacta 
 # 20241001: Programa alterado para funcionar no laptop
 # 202412
+#20250529: Programa alterado para salvar o resultado da segmentacao em pickle
+#          no diretorio FromFullImg
 import os
 import gc
 import time
@@ -157,10 +159,14 @@ parser.add_argument("-pd", '--process_time_dir', type=str, help="Dir para df com
 parser.add_argument("-nc", '--num_components', type=int, help="number of PCA components", default=4 )
 parser.add_argument("-dsi", '--image_dir', type=str, help="Diretorio da imagem pca", default='data/tmp/spark_pca_images/')
 parser.add_argument("-p", '--padrao', type=str, help="Filtro para o diretorio ", default='*')
+parser.add_argument("-pfi", '--pca_fullImg', type=int, help="usar pca da imagem full", default=0 )
 args = parser.parse_args()
 
 base_dir = '/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/'
-# base_dir = args.base_dir
+if args.base_dir: 
+    base_dir = args.base_dir
+    print (f'base_dir: {base_dir}') 
+
 save_etapas_dir = base_dir + args.save_dir if base_dir else args.save_dir + args.name_img +'/'
 # tif_dir = base_dir + args.tif_dir if base_dir else args.tif_dir
 read_quad = args.quadrante 
@@ -169,8 +175,9 @@ name_img = args.name_img
 process_time_dir = base_dir + args.process_time_dir
 sh_print = args.sh_print
 n_components = args.num_components
-img_dir = args.image_dir
+img_dir = base_dir + args.image_dir
 padrao = args.padrao
+pca_fullImg = args.pca_fullImg
 
 a = datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')
 #b = datetime.datetime.now().strftime('%H:%M:%S')
@@ -188,7 +195,8 @@ proc_dic[ri]['etapa'] = 'Gen PCA images segmentation '
 #for laptop
 # base_dir = '/Users/flaviaschneider/Documents/flavia/Data_GEOBIA/' #20241211 commented 
 #img_dir = base_dir + 'data/tmp/spark_pca_images/' #20241211 commented
-img_dir = save_etapas_dir + 'spark_pca_images/'
+#20250529 commentei abaixo, nao sei pq nao estava comentado
+# img_dir = save_etapas_dir + 'spark_pca_images/'
 
 # padrao =  '*' #'pca_scaled'
 padrao =  'Quad_'+str(read_quad)#'pca_scaled'
@@ -209,6 +217,7 @@ if not padrao:
     
 else:
     #ler as componentes do dir usando o padrao informado
+    print (f'image pca to read: {img_dir}, padrao: {padrao}, pca_fullImg: {pca_fullImg}')
     img_files = list_files_to_read(img_dir, padrao, sh_print=0)
     a = datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')
     print (f'{a}: 1.1 PCA images files: {img_files}')
@@ -216,7 +225,7 @@ else:
     pca_cols = []
     img_pca_dic = {}
     for f in img_files:
-        c = f.split('_')[-1]
+        c = f.split('_')[-1] if pca_fullImg==0 else f.split('_')[-2] #20241211 alterado para pegar o nome da component
         # pca_cols.append(c)
         print (f'{a}: {c}, {f}')
         if 'Quad_'+str(read_quad) in f:
@@ -308,12 +317,15 @@ print (f'{a}: 3. Saving results snic')
 params_test = {"segms":n_segms, "compactness":compact, "ski_img": True}
 # f_name = base_dir +'pca/pca_snic/'
 # f_name = base_dir +'tmp/spark_pca_snic/' #20241211 commented
-f_name = save_etapas_dir + 'spark_pca_snic/Quad_' + str(read_quad) +'/'
+if pca_fullImg:
+    f_name = save_etapas_dir + 'spark_pca_snic/PCAFullImg/Quad_' + str(read_quad) +'/'
+else:
+    f_name = save_etapas_dir + 'spark_pca_snic/Quad_' + str(read_quad) +'/'
 diretorio = Path(f_name)
 diretorio.mkdir(parents=True, exist_ok=True)
 t1=time.time()
 save_segm(id, snic_centroid_df, segments_snic_sel_sp, 
-              f_name, params_test,str_fn='quad'+str(read_quad), sh_print=True )
+          f_name, params_test,str_fn='quad'+str(read_quad), sh_print=sh_print )
 t2=time.time()              
 a = datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')
 print (f'{a}: 3.1 Tempo para salvar em pkl o resultado da segmentacao imagem {c}: {t2-t1:.2f} s {(t2-t1)/60:.2f} m ')

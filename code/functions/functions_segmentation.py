@@ -41,6 +41,21 @@ from skimage.measure import regionprops, regionprops_table
 from functions.functions_pca import save_to_pickle, calc_avg_array, \
                                     calc_avg_array_pca
 
+# 20250809: adicionei a funcao para concatenar dfs que estava feita no 
+# plot_segmentations.py e no notebook ComparaSLIC_SNIC.ipynb
+def concat_dfs(dic_df):
+    '''
+    Concatenates a list of dataframes
+    '''
+    result_df = pd.DataFrame()
+    for i in dic_df.keys():
+        if not len(result_df.index): #if df is empty
+            result_df = dic_df[i]
+            print (i)
+            continue
+        result_df = pd.concat([result_df,dic_df[i]], axis=0)
+
+    return result_df
 # 20241124: function to get coords positons to get the image qudrant
 def get_quadrant_coords(q, imgSize):
     '''
@@ -370,7 +385,7 @@ def run_snic_gen_dask(id,img_sel_norm_shape, ski_img_sel_norm_list, n_segms, \
 ## Function to run snic and gen dfs from snic output
 # 20240823 : testada no jupyter notebooks/spk_gen_df_toPCA_exemplo.ipynb 
 def run_snic_gen_dfs(id,img_sel_norm_shape, ski_img_sel_norm_list, n_segms, \
-             compact, f_name, img_band_dic_norm, bands_sel, save_snic=False, sh_print=True):
+             compact, f_name, img_band_dic_norm, bands_sel, nd="3", save_snic=False, sh_print=True):
     '''
     Function to run snic and return snic_centroid_ski_df, coords_snic_ski_df, segments_snic_sel_ski_sp
     ski = true para usar o avg que é retornado do snic na gen do df
@@ -399,7 +414,7 @@ def run_snic_gen_dfs(id,img_sel_norm_shape, ski_img_sel_norm_list, n_segms, \
                             ski_img_sel_norm_list,
                             #img_sel_norm.tolist(),
                             seeds,
-                            compact, nd_computations["3"], distance_metric)#,
+                            compact, nd_computations[nd], distance_metric)#,
                             #update_func=lambda num_pixels: print("processed %05.2f%%" % (num_pixels * 100 / number_of_pixels)))
     
     t3=time.time()
@@ -613,7 +628,7 @@ def save_segm(id, snic_centroid_df, segments_snic_sel_sp,
 
 
 ##### Function to gen statistics of bands(cols) of slic sp df
-def gen_stats(df_dd, id_test, conf_test_dic, bands, segm_type='slic', mean=True, dask=True):
+def gen_stats(df_dd, id_test, conf_test_dic, bands, segm_type='slic', mean=True, dask=False):
     '''
     Generates statistics for the segmentation df 
     calculates average, max and min number of pixels in a sp (superpixel) 
@@ -702,8 +717,8 @@ def norm_img_dic(image_band_dic, replace_nans=False, show_print=True):
     for k in image_band_dic.keys():        
         if replace_nans:
             image_band_dic_norm[k]=np.where((image_band_dic[k] == -9999) |(image_band_dic[k] == -32768), np.nan, image_band_dic[k])
+        image_band_dic_norm[k]=image_band_dic[k].astype(float)/np.max(image_band_dic[k])
         print (k, np.max(image_band_dic_norm[k]), np.max(image_band_dic[k]) ) if show_print else None
-        image_band_dic_norm[k]=image_band_dic_norm[k].astype(float)/np.max(image_band_dic[k])
     time_fim=time.time()
     print (time_fim-time_ini) if show_print else None    
     return image_band_dic_norm
