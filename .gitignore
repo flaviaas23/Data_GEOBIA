@@ -10179,3 +10179,4 @@ data/img_031027/spark_pca_matrix_sim/matrix_similarity_npmem_job_Quad_3/arr_0/12
 data/img_031027/spark_pca_matrix_sim/matrix_similarity_npmem_job_Quad_3/arr_0/12.14
 data/img_031027/spark_pca_matrix_sim/matrix_similarity_npmem_job_Quad_3/arr_0/12.15
 notebooks/Test_PCA_calculoMatrizSimilaridade.ipynb
+*.tif
