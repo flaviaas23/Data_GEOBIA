@@ -143,7 +143,8 @@ parser.add_argument("-sp", '--sh_print', type=int, help="Show prints", default=0
 parser.add_argument("-pd", '--process_time_dir', type=str, help="Dir para df com os tempos de processamento", default='data/tmp2/')
 # parser.add_argument("-rf", '--READ_df_features', type=int, help="Read or create df with features", default=0 )
 parser.add_argument("-nc", '--num_components', type=int, help="number of PCA components", default=4 )
-parser.add_argument("-pfi", '--pca_fullImg', type=int, help="usar pca da iamgem full", default=1 )
+parser.add_argument("-pfi", '--pca_fullImg', type=int, help="usar pca da imagem full", default=1 )
+parser.add_argument("-isz", '--imageSize', type=int, help="size of full image", default=10560 )
 args = parser.parse_args()
  
 # base_dir = args.base_dir
@@ -156,6 +157,7 @@ process_time_dir = base_dir + args.process_time_dir
 sh_print = args.sh_print
 n_components = args.num_components
 pca_fullImg = args.pca_fullImg
+imgSize = args.imageSize
 
 a = datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')
 t = datetime.datetime.now().strftime('%Y%m%d_%H%M_')
@@ -302,10 +304,10 @@ print (merged_df.show(n=5)) if sh_print else None
 logger.info(f'Tempo para sort merged_df: {t2-t1:.2f}s')
 logger.info(f'Tempo para replace None to np.nan: {t3-t2:.2f}s')
 logger.info(f'3.3 merged_df schema: {merged_df.printSchema()}')
-img_sz = 5280 #10560/2
+img_sz = int(imgSize/2) #600 #1200/2 #5280 #10560/2
 
 if pca_fullImg==1:  # read of full image
-    imgSize = 10560
+    # imgSize = 10560
     if read_quad == 9:  # gen pca images for all 4 quadrants
         # 
         print (f'read_quad = {read_quad}, imgSize = {imgSize}') if sh_print else None

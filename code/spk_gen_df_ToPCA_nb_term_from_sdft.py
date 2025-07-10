@@ -275,7 +275,7 @@ logger.info(f'Inicio do save em parquet')
 t1=time.time()
 # temp_path= '/Users/flaviaschneider/Documents/flavia/Data_GEOBIA' + '/data/tmp'
 if read_quad==9:
-    sdfPath = save_etapas_dir + "spark_df_toPCA_Full_2"
+    sdfPath = save_etapas_dir + "spark_df_toPCA_Full"
 else:
     sdfPath = save_etapas_dir + "spark_df_toPCA_Quad_"+str(read_quad)
 

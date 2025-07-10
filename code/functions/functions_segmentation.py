@@ -177,7 +177,7 @@ def gen_centroid_snic_ddf(image_band_dic, centroids_snic_sp, coords_snic_df, \
 #          principal diferença no apply,  meta= foi removido e nao gera mais coords em dask
 #          testada no jupyter notebooks/spk_gen_df_toPCA_exemplo.ipynb 
 def gen_centroid_snic_df(image_band_dic, centroids_snic_sp, coords_snic_df, \
-                         bands_sel, ski=True, stats=True, dask=False, sh_print=True):
+                         bands_sel, ski=True, stats=True, dask=False, sh_print=False):
     '''
     Function to gen a df from snic centroids em pandas
     Ski: 

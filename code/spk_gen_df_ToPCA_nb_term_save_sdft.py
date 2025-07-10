@@ -121,6 +121,12 @@ print (f'\n{a}: base_dir = {base_dir}\n args: sd={save_etapas_dir} \ntd={tif_dir
 nome_log = t + nome_prog.split('.')[0]+'.log'
 # log_dir = base_dir + 'code/logs/'
 
+#Verificar se o diretório existe e, se não existir, criá-lo
+# Caminho do diretório
+diretorio = Path(log_dir)
+diretorio.mkdir(parents=True, exist_ok=True)
+print(f"Diretório '{log_dir}' está disponível.")
+
 logger = cria_logger(log_dir, nome_log)
 logger.info(f'######## INICIO {nome_prog} ##########')
 logger.info(f'args: sd={save_etapas_dir} td={tif_dir} ld={log_dir} i={name_img} pd={process_time_dir} sp={args.sh_print}')
@@ -172,7 +178,7 @@ from pyspark.sql.functions import row_number
 # dates = ['20220728', '20220829', '20220830', '20220901', '20220902', '20220903']#, '20220904']
 band_img_files = band_tile_img_files
 i = 0
-ini = 11
+ini = 0
 print (f'dates: {dates}')
 
 #number of quadrants of image
@@ -180,7 +186,7 @@ q_number =  4 #number of quadrants of image
 quadrants = [read_quad] if read_quad else range(1,q_number+1)
 # quadrants = [2,3,4] #para test
 
-for t in dates[ini:ini+1]:#['2023-09-28']:#dates[ini:]:
+for t in dates[ini:]:#['2023-09-28']:#dates[ini:]: # [ini:ini+1] para testar apenas uma data
     # t='2023-09-28'
     print (f'******************** {i}: {t} *******************') #if sh_print else None
     tt1 = time.time()

@@ -128,7 +128,7 @@ parser.add_argument("-sp", '--sh_print', type=int, help="Show prints", default=0
 parser.add_argument("-pd", '--process_time_dir', type=str, help="Dir para df com os tempos de processamento", default='data/tmp2/')
 parser.add_argument("-rf", '--READ_df_features', type=int, help="Read or create df with features", default=0 )
 parser.add_argument("-rs", '--READ_df_features_scaled', type=int, help="Read or create df with features scaled", default=0 )
-parser.add_argument("-nc", '--num_components', type=int, help="Read or create df with features", default=4 )
+parser.add_argument("-nc", '--num_components', type=int, help="number of components for pca", default=4 )
 parser.add_argument("-cm", '--components_matrix', type=int, help="Use components matrix to calc pca", default=0 )
 args = parser.parse_args()
 
